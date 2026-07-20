@@ -277,4 +277,133 @@ describe('computeFactoryMetrics', () => {
 
     expect(metrics.transitions).toEqual({ human: 1, total: 2 });
   });
+
+  describe('stageAutomation', () => {
+    it('given automation on part of the board, then only the automated stage counts as automated', () => {
+      // Triage fully automated; planning entered by automation but approved
+      // (exited) by a human — the partial-board case.
+      const item = makeItem({
+        stages: ['execute'],
+        stageHistory: [
+          { stage: 'triage', enteredAt: hoursAgo(9), exitedAt: hoursAgo(8), by: 'factory', exitedBy: 'factory' },
+          { stage: 'planning', enteredAt: hoursAgo(8), exitedAt: hoursAgo(2), by: 'factory', exitedBy: 'user_1' },
+          { stage: 'execute', enteredAt: hoursAgo(2), by: 'user_1' },
+        ],
+      });
+
+      const metrics = computeFactoryMetrics([item], { days: 7, now: NOW });
+
+      expect(metrics.stageAutomation).toEqual([
+        { stage: 'triage', exits: 1, automated: 1, outcomes: { done: 0, discarded: 0, reworked: 0, inFlight: 1 } },
+        { stage: 'planning', exits: 1, automated: 0, outcomes: { done: 0, discarded: 0, reworked: 0, inFlight: 0 } },
+      ]);
+    });
+
+    it('given a reworked stage, then neither visit is automated after the first and the pass counts reworked', () => {
+      // First triage pass fully automated, then the item bounced back through
+      // triage (human), then went done. Reworked deliberately outranks done.
+      const item = makeItem({
+        stages: ['done'],
+        stageHistory: [
+          { stage: 'triage', enteredAt: hoursAgo(10), exitedAt: hoursAgo(9), by: 'factory', exitedBy: 'factory' },
+          { stage: 'triage', enteredAt: hoursAgo(8), exitedAt: hoursAgo(7), by: 'factory', exitedBy: 'factory' },
+          { stage: 'done', enteredAt: hoursAgo(6), by: 'user_1' },
+        ],
+      });
+
+      const metrics = computeFactoryMetrics([item], { days: 7, now: NOW });
+
+      // Second visit is never automated even with automation actors on both ends.
+      expect(metrics.stageAutomation).toEqual([
+        { stage: 'triage', exits: 2, automated: 1, outcomes: { done: 0, discarded: 0, reworked: 1, inFlight: 0 } },
+      ]);
+    });
+
+    it('given entries missing exitedBy or with a human on either end, then the visit is not automated', () => {
+      const items = [
+        makeItem({
+          id: '00000000-0000-4000-8000-000000000001',
+          stages: ['planning'],
+          stageHistory: [
+            // Legacy entry: automation-entered but closed before exit stamping existed.
+            { stage: 'triage', enteredAt: hoursAgo(9), exitedAt: hoursAgo(8), by: 'factory' },
+            { stage: 'planning', enteredAt: hoursAgo(8), by: 'user_1' },
+          ],
+        }),
+        makeItem({
+          id: '00000000-0000-4000-8000-000000000002',
+          stages: ['planning'],
+          stageHistory: [
+            // Human-entered, automation-exited: mixed visit is not automated.
+            { stage: 'triage', enteredAt: hoursAgo(9), exitedAt: hoursAgo(8), by: 'user_1', exitedBy: 'factory' },
+            { stage: 'planning', enteredAt: hoursAgo(8), by: 'factory' },
+          ],
+        }),
+      ];
+
+      const metrics = computeFactoryMetrics(items, { days: 7, now: NOW });
+
+      expect(metrics.stageAutomation).toEqual([
+        { stage: 'triage', exits: 2, automated: 0, outcomes: { done: 0, discarded: 0, reworked: 0, inFlight: 0 } },
+      ]);
+    });
+
+    it('given automated passes with different endings, then outcomes classify done, discarded, and in flight', () => {
+      const autoTriage = (id: string, stages: string[], tail: WorkItemStageEntry[]): WorkItemRow =>
+        makeItem({
+          id,
+          stages,
+          stageHistory: [
+            { stage: 'triage', enteredAt: hoursAgo(9), exitedAt: hoursAgo(8), by: 'automation', exitedBy: 'system' },
+            ...tail,
+          ],
+        });
+      const items = [
+        autoTriage('00000000-0000-4000-8000-000000000001', ['done'], [
+          { stage: 'done', enteredAt: hoursAgo(2), by: 'user_1' },
+        ]),
+        autoTriage('00000000-0000-4000-8000-000000000002', ['discarded'], [
+          { stage: 'discarded', enteredAt: hoursAgo(2), by: 'user_1' },
+        ]),
+        autoTriage('00000000-0000-4000-8000-000000000003', ['planning'], [
+          { stage: 'planning', enteredAt: hoursAgo(2), by: 'user_1' },
+        ]),
+      ];
+
+      const metrics = computeFactoryMetrics(items, { days: 7, now: NOW });
+
+      expect(metrics.stageAutomation).toEqual([
+        { stage: 'triage', exits: 3, automated: 3, outcomes: { done: 1, discarded: 1, reworked: 0, inFlight: 1 } },
+      ]);
+    });
+
+    it('given exits outside the window, then they are not counted', () => {
+      const item = makeItem({
+        stages: ['planning'],
+        stageHistory: [
+          { stage: 'triage', enteredAt: hoursAgo(10 * 24), exitedAt: hoursAgo(8 * 24), by: 'factory', exitedBy: 'factory' },
+          { stage: 'planning', enteredAt: hoursAgo(8 * 24), by: 'user_1' },
+        ],
+      });
+
+      const metrics = computeFactoryMetrics([item], { days: 7, now: NOW });
+
+      expect(metrics.stageAutomation).toEqual([]);
+    });
+
+    it('given visits to terminal stages, then they never produce rows', () => {
+      const item = makeItem({
+        stages: ['triage'],
+        stageHistory: [
+          { stage: 'done', enteredAt: hoursAgo(9), exitedAt: hoursAgo(8), by: 'factory', exitedBy: 'factory' },
+          { stage: 'discarded', enteredAt: hoursAgo(8), exitedAt: hoursAgo(2), by: 'factory', exitedBy: 'factory' },
+          { stage: 'triage', enteredAt: hoursAgo(2), by: 'user_1' },
+        ],
+      });
+
+      const metrics = computeFactoryMetrics([item], { days: 7, now: NOW });
+
+      expect(metrics.stageAutomation).toEqual([]);
+    });
+  });
 });

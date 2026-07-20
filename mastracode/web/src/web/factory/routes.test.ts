@@ -30,7 +30,7 @@ import { seedFactoryStorageForTests } from '../storage/test-utils';
 import type { FactoryStorageTestSeed } from '../storage/test-utils';
 import { mountApiRoutes } from '../test-utils';
 import { buildFactoryRoutes } from './routes';
-import { parseCreateWorkItem, parseUpdateWorkItem } from './store';
+import { moveWorkItemStagesAsAutomation, parseCreateWorkItem, parseUpdateWorkItem } from './store';
 
 // ── Test harness ─────────────────────────────────────────────────────────
 let sourceControlStorage!: SourceControlStorageHandle;
@@ -378,6 +378,32 @@ describe('GET /web/factory/repositories/:id/metrics', () => {
     expect(metrics.cycleTime).toEqual({ medianMs: null, p90Ms: null, samples: 0 });
     expect(metrics.wip).toEqual([]);
     expect(metrics.agingWip).toEqual([]);
+    expect(metrics.stageAutomation).toEqual([]);
+  });
+
+  it('serves per-stage automation: automated triage pass vs human-approved planning', async () => {
+    // Human files the card, automation runs triage (intake → triage → planning),
+    // then a human approves planning into done.
+    const created = await json('POST', `/web/factory/repositories/${PROJECT_ID}/work-items`, createBody());
+    const { workItem } = await created.json();
+    await moveWorkItemStagesAsAutomation('org1', workItem.id, ['triage']);
+    await moveWorkItemStagesAsAutomation('org1', workItem.id, ['planning']);
+    await json('PATCH', `/web/factory/work-items/${workItem.id}`, { stages: ['done'] });
+
+    const res = await json('GET', `/web/factory/repositories/${PROJECT_ID}/metrics?days=7`);
+    expect(res.status).toBe(200);
+    const { metrics } = await res.json();
+
+    expect(metrics.stageAutomation).toEqual([
+      // Human-entered (creation), automation-exited → not automated.
+      { stage: 'intake', exits: 1, automated: 0, outcomes: { done: 0, discarded: 0, reworked: 0, inFlight: 0 } },
+      // Automation-entered and -exited, first visit → clean automated pass, item is done.
+      { stage: 'triage', exits: 1, automated: 1, outcomes: { done: 1, discarded: 0, reworked: 0, inFlight: 0 } },
+      // Automation-entered, human-exited → not automated.
+      { stage: 'planning', exits: 1, automated: 0, outcomes: { done: 0, discarded: 0, reworked: 0, inFlight: 0 } },
+    ]);
+    // Global split matches: 4 entered stages, 2 by automation.
+    expect(metrics.transitions).toEqual({ human: 2, total: 4 });
   });
 });
 

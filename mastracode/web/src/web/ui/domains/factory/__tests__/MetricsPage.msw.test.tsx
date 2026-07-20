@@ -92,6 +92,10 @@ function makeMetrics(overrides: Partial<FactoryMetrics> = {}): FactoryMetrics {
       { source: 'manual', count: 1 },
     ],
     transitions: { human: 2, total: 6 },
+    stageAutomation: [
+      { stage: 'triage', exits: 4, automated: 2, outcomes: { done: 1, discarded: 0, reworked: 1, inFlight: 0 } },
+      { stage: 'planning', exits: 3, automated: 0, outcomes: { done: 0, discarded: 0, reworked: 0, inFlight: 0 } },
+    ],
     ...overrides,
   };
 }
