@@ -7,6 +7,7 @@
  * testable and lets the route stay a thin shell.
  */
 
+import { isAutomationActor } from '../storage/domains/work-items/base';
 import type { WorkItemRow, WorkItemStageEntry } from '../storage/domains/work-items/base';
 
 /** Windows the metrics endpoint accepts; anything else clamps to the default. */
@@ -15,14 +16,6 @@ export const DEFAULT_METRICS_WINDOW = 30;
 
 /** Terminal stage — items here count as completed, not in-flight. */
 const DONE_STAGE = 'done';
-
-/**
- * Sentinel actor ids for server/automation-driven transitions. Today every
- * stage move is stamped with the acting user's WorkOS id, so `human === total`;
- * if server-side automation ever moves cards under one of these actors the
- * split starts diverging without a schema change.
- */
-const FACTORY_ACTORS = new Set(['factory', 'system', 'automation']);
 
 const AGING_WIP_LIMIT = 10;
 
@@ -165,7 +158,7 @@ export function computeFactoryMetrics(items: WorkItemRow[], opts: { days: number
       const entered = parseTime(entry.enteredAt);
       if (entered < windowStart || entered > nowMs) continue;
       transitionsTotal += 1;
-      if (!FACTORY_ACTORS.has(entry.by)) transitionsHuman += 1;
+      if (!isAutomationActor(entry.by)) transitionsHuman += 1;
     }
   }
 

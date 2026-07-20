@@ -12,6 +12,7 @@
 
 import { getFactoryStorage } from '../runtime-config';
 import { getWorkItemsStorage } from '../storage/domains';
+import { AUTOMATION_ACTOR } from '../storage/domains/work-items/base';
 import type {
   CreateWorkItemInput,
   UpdateWorkItemInput,
@@ -208,4 +209,23 @@ export async function updateWorkItem(
 /** Delete an org's work item. Returns the row actually deleted, or `null` when it doesn't exist in the org. */
 export async function deleteWorkItem(orgId: string, id: string): Promise<WorkItemRow | null> {
   return (await workItemsDomain()).delete(orgId, id);
+}
+
+/**
+ * Move an org's work item between stages as automation: stage history entries
+ * are stamped with the canonical automation actor (`by` on entered stages,
+ * `exitedBy` on closed ones) so metrics can attribute the pass to automation.
+ *
+ * **Server-internal only.** HTTP routes must never call this with
+ * client-influenced actor semantics — routes always stamp the authenticated
+ * user via {@link updateWorkItem}. This is the hook point server-side
+ * automation (e.g. future AI-agent hooks like `runIssueTriage`) uses to move
+ * cards.
+ */
+export async function moveWorkItemStagesAsAutomation(
+  orgId: string,
+  id: string,
+  stages: string[],
+): Promise<{ item: WorkItemRow; previous: WorkItemPriorState } | null> {
+  return (await workItemsDomain()).update(orgId, id, AUTOMATION_ACTOR, { stages });
 }

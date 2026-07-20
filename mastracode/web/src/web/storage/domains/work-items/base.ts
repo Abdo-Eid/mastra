@@ -46,6 +46,26 @@ export interface WorkItemStageEntry {
   exitedAt?: string;
   /** WorkOS user id who performed the transition. */
   by: string;
+  /**
+   * Actor that closed this entry; absent on entries written before exit
+   * stamping existed — treat as human.
+   */
+  exitedBy?: string;
+}
+
+/** Canonical actor id stamped on server-driven automation transitions. */
+export const AUTOMATION_ACTOR = 'factory';
+
+/**
+ * Sentinel actor ids that mark a stage transition as automation-driven (vs a
+ * human's WorkOS user id). Metrics treat any other actor — including a
+ * missing `exitedBy` on pre-existing entries — as human.
+ */
+export const AUTOMATION_ACTORS = new Set(['factory', 'system', 'automation']);
+
+/** Whether an actor id is one of the canonical automation actors. */
+export function isAutomationActor(by: string | undefined): boolean {
+  return by !== undefined && AUTOMATION_ACTORS.has(by);
 }
 
 /** One persisted work item. */
@@ -112,7 +132,8 @@ export type UpsertWorkItemResult =
 
 /**
  * Diff `oldStages` → `newStages` and return the updated history: exited stages
- * get `exitedAt` stamped on their open entry, entered stages get a new entry.
+ * get `exitedAt` + `exitedBy` stamped on their open entry, entered stages get
+ * a new entry.
  */
 export function applyStageTransition(
   history: WorkItemStageEntry[],
@@ -130,6 +151,7 @@ export function applyStageTransition(
       const entry = next[i]!;
       if (entry.stage === stage && entry.exitedAt === undefined) {
         entry.exitedAt = timestamp;
+        entry.exitedBy = by;
         break;
       }
     }
