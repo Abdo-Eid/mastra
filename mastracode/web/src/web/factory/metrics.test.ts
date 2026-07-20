@@ -209,6 +209,60 @@ describe('computeFactoryMetrics', () => {
     ]);
   });
 
+  it('given a discarded item, then it is terminal but never a completion', () => {
+    const discarded = makeItem({
+      id: '00000000-0000-4000-8000-000000000001',
+      stages: ['discarded'],
+      stageHistory: [
+        { stage: 'triage', enteredAt: hoursAgo(10), exitedAt: hoursAgo(4), by: 'user_1' },
+        { stage: 'discarded', enteredAt: hoursAgo(4), by: 'user_1' },
+      ],
+    });
+
+    const metrics = computeFactoryMetrics([discarded], { days: 7, now: NOW });
+
+    // Not a completion: throughput and cycle time stay done-only.
+    expect(metrics.throughput.every(point => point.count === 0)).toBe(true);
+    expect(metrics.cycleTime.samples).toBe(0);
+    // Not in-flight: excluded from wipTotal and aging...
+    expect(metrics.wipTotal).toBe(0);
+    expect(metrics.agingWip).toEqual([]);
+    // ...but its held stage still appears in the per-stage wip counts, like done.
+    expect(Object.fromEntries(metrics.wip.map(w => [w.stage, w.count]))).toEqual({ discarded: 1 });
+  });
+
+  it('given visits to terminal stages, then stage durations exclude them', () => {
+    const item = makeItem({
+      stages: ['review'],
+      stageHistory: [
+        { stage: 'discarded', enteredAt: hoursAgo(20), exitedAt: hoursAgo(10), by: 'user_1' }, // un-discarded
+        { stage: 'done', enteredAt: hoursAgo(10), exitedAt: hoursAgo(6), by: 'user_1' }, // pulled back out of done
+        { stage: 'triage', enteredAt: hoursAgo(6), exitedAt: hoursAgo(3), by: 'user_1' }, // 3h — the only sample
+        { stage: 'review', enteredAt: hoursAgo(3), by: 'user_1' },
+      ],
+    });
+
+    const metrics = computeFactoryMetrics([item], { days: 7, now: NOW });
+
+    expect(metrics.stageDurations).toEqual([{ stage: 'triage', medianMs: 3 * HOUR, samples: 1 }]);
+  });
+
+  it('given an item pulled back out of discarded, then it counts as in-flight again', () => {
+    const item = makeItem({
+      stages: ['triage'],
+      stageHistory: [
+        { stage: 'discarded', enteredAt: hoursAgo(8), exitedAt: hoursAgo(2), by: 'user_1' },
+        { stage: 'triage', enteredAt: hoursAgo(2), by: 'user_1' },
+      ],
+    });
+
+    const metrics = computeFactoryMetrics([item], { days: 7, now: NOW });
+
+    expect(metrics.wipTotal).toBe(1);
+    expect(metrics.agingWip).toHaveLength(1);
+    expect(metrics.agingWip[0]).toMatchObject({ stage: 'triage', enteredAt: hoursAgo(2) });
+  });
+
   it('given stage moves in the window, then transitions count entries and split out factory actors', () => {
     const item = makeItem({
       stages: ['execute'],

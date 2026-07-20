@@ -118,6 +118,17 @@ describe('computeQueueHealth', () => {
     expect(health.entries).toEqual([]);
   });
 
+  it('excludes discarded-only items entirely (terminal, like done)', () => {
+    const discarded = makeItem({
+      stages: ['discarded'],
+      stageHistory: [{ stage: 'discarded', enteredAt: secondsAgo(10), by: 'u1' }],
+    });
+    const health = computeQueueHealth([discarded], new Set(), DEFAULT, NOW);
+    expect(health.stages.find(s => s.stage === 'discarded')).toBeUndefined();
+    expect(health.stages.every(s => s.total === 0)).toBe(true);
+    expect(health.entries).toEqual([]);
+  });
+
   it('falls back to createdAt when a held stage has no open history entry', () => {
     const item = makeItem({
       stages: ['execute'],

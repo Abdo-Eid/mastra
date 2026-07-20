@@ -17,6 +17,13 @@ export const DEFAULT_METRICS_WINDOW = 30;
 /** Terminal stage — items here count as completed, not in-flight. */
 const DONE_STAGE = 'done';
 
+/**
+ * Terminal stages — items holding only these are not in-flight. `done` is a
+ * completion (feeds throughput/cycle time); `discarded` is a tracked
+ * non-completion outcome and feeds neither.
+ */
+const TERMINAL_STAGES = new Set([DONE_STAGE, 'discarded']);
+
 const AGING_WIP_LIMIT = 10;
 
 export interface FactoryMetrics {
@@ -29,7 +36,7 @@ export interface FactoryMetrics {
   stageDurations: { stage: string; medianMs: number; samples: number }[];
   /** Current cards per stage (window-independent). */
   wip: { stage: string; count: number }[];
-  /** Distinct in-flight cards (at least one non-done stage). */
+  /** Distinct in-flight cards (at least one non-terminal stage). */
   wipTotal: number;
   /** Oldest in-flight cards by time in their current stage. */
   agingWip: { id: string; title: string; stage: string; enteredAt: string; url: string | null }[];
@@ -77,10 +84,10 @@ function completedAt(item: WorkItemRow): number | undefined {
   return undefined;
 }
 
-/** Open (no `exitedAt`) history entry for a currently-held non-done stage. */
+/** Open (no `exitedAt`) history entry for a currently-held non-terminal stage. */
 function openEntries(item: WorkItemRow): WorkItemStageEntry[] {
   return item.stageHistory.filter(
-    entry => entry.exitedAt === undefined && entry.stage !== DONE_STAGE && item.stages.includes(entry.stage),
+    entry => entry.exitedAt === undefined && !TERMINAL_STAGES.has(entry.stage) && item.stages.includes(entry.stage),
   );
 }
 
@@ -107,7 +114,7 @@ export function computeFactoryMetrics(items: WorkItemRow[], opts: { days: number
   const durationsByStage = new Map<string, number[]>();
   for (const item of items) {
     for (const entry of item.stageHistory) {
-      if (entry.exitedAt === undefined || entry.stage === DONE_STAGE) continue;
+      if (entry.exitedAt === undefined || TERMINAL_STAGES.has(entry.stage)) continue;
       const exited = parseTime(entry.exitedAt);
       if (exited < windowStart || exited > nowMs) continue;
       const duration = Math.max(0, exited - parseTime(entry.enteredAt));
@@ -125,7 +132,7 @@ export function computeFactoryMetrics(items: WorkItemRow[], opts: { days: number
     for (const stage of item.stages) {
       wipByStage.set(stage, (wipByStage.get(stage) ?? 0) + 1);
     }
-    const inFlightStages = item.stages.filter(stage => stage !== DONE_STAGE);
+    const inFlightStages = item.stages.filter(stage => !TERMINAL_STAGES.has(stage));
     if (inFlightStages.length === 0) continue;
     wipTotal += 1;
     // Age the card by its longest-held current stage; fall back to creation
