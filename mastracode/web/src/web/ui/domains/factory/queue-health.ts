@@ -68,8 +68,9 @@ function parseTime(iso: string): number {
 
 /**
  * Open (no `exitedAt`) history entries for currently-held non-terminal stages —
- * one per held stage. Replicated from `factory/metrics.ts:openEntries` (that
- * helper is module-private and `metrics.ts` stays untouched per the plan).
+ * one per held stage. Replicated from `factory/metrics.ts:openEntries` — that
+ * helper is module-private, and this UI-only module must not import server
+ * modules.
  */
 function openEntries(item: QueueHealthWorkItem): WorkItemStageEntry[] {
   return item.stageHistory.filter(

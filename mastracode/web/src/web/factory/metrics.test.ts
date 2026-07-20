@@ -78,6 +78,7 @@ describe('computeFactoryMetrics', () => {
     expect(metrics.agingWip).toEqual([]);
     expect(metrics.sourceMix).toEqual([]);
     expect(metrics.transitions).toEqual({ human: 0, total: 0 });
+    expect(metrics.stageAutomation).toEqual([]);
   });
 
   it('given completed items, then throughput buckets by UTC day and cycle time spans creation → done', () => {

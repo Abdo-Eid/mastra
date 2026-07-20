@@ -228,6 +228,16 @@ function StageBreakdown({ metrics }: { metrics: FactoryMetrics }) {
  * the automated passes' items ended up.
  */
 function StageAutomation({ metrics }: { metrics: FactoryMetrics }) {
+  // Rows only exist for stages with ≥1 exit, so an empty list means no stage
+  // had a completed pass in the window.
+  if (metrics.stageAutomation.length === 0) {
+    return (
+      <Txt as="p" variant="ui-sm" className="m-0 text-icon3">
+        No completed stage passes in this window yet.
+      </Txt>
+    );
+  }
+
   const rowsByStage = new Map(metrics.stageAutomation.map(row => [row.stage, row]));
   // Non-terminal board stages in column order, plus any stages present in the
   // data but unknown to the board (raw id, sorted last — same rule as
@@ -238,16 +248,6 @@ function StageAutomation({ metrics }: { metrics: FactoryMetrics }) {
       ...metrics.stageAutomation.map(row => row.stage),
     ]),
   ].sort((a, b) => stageOrder(a) - stageOrder(b));
-
-  // Rows only exist for stages with ≥1 exit, so an empty list means no stage
-  // had a completed pass in the window.
-  if (metrics.stageAutomation.length === 0) {
-    return (
-      <Txt as="p" variant="ui-sm" className="m-0 text-icon3">
-        No completed stage passes in this window yet.
-      </Txt>
-    );
-  }
 
   return (
     <ul className="m-0 flex list-none flex-col gap-2 p-0">

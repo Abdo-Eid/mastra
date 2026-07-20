@@ -31,7 +31,11 @@ export interface FactoryMetrics {
     exits: number;
     /** Of those: clean automated passes (first visit, automation-entered and -exited). */
     automated: number;
-    /** Outcomes of the automated passes' items, mutually exclusive. */
+    /**
+     * Outcomes of the automated passes' items, mutually exclusive. Reflects
+     * each item's state *now*, so a fixed window's split shifts as in-flight
+     * items land (e.g. an `inFlight` pass becomes `done` on a later query).
+     */
     outcomes: { done: number; discarded: number; reworked: number; inFlight: number };
   }[];
 }

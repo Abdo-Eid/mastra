@@ -1393,6 +1393,28 @@ describe('Factory Board — drag and drop', () => {
     expect(within(column('execute')).queryByTestId('work-item-card')).not.toBeInTheDocument();
   });
 
+  it('given a card in Review, when dragged to Discarded, then the stages PATCH to discarded and the card moves', async () => {
+    const state = useBoardHandlers({
+      workItems: [
+        makeWorkItem({
+          id: 'wi-1',
+          title: 'Dead-end spike',
+          source: 'github-issue',
+          sourceKey: 'github-issue:12',
+          stages: ['review'],
+        }),
+      ],
+    });
+    renderAt('/factory/board');
+
+    await screen.findByTestId('board-column-intake');
+    dragTo(within(column('review')).getByTestId('work-item-card'), column('discarded'));
+
+    await waitFor(() => expect(state.patches).toEqual([{ id: 'wi-1', stages: ['discarded'] }]));
+    expect(within(column('discarded')).getByText('Dead-end spike')).toBeInTheDocument();
+    expect(within(column('review')).queryByTestId('work-item-card')).not.toBeInTheDocument();
+  });
+
   it('given an unmaterialized candidate, when dragged to Building, then a work item is filed with that stage and no run starts', async () => {
     const state = useBoardHandlers({ issues });
     renderAt('/factory/board');
