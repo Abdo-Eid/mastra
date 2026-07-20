@@ -29,7 +29,7 @@ export function StatusLine() {
   return (
     <div
       aria-label="Session status line"
-      className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 py-2 text-ui-sm text-icon3"
+      className="text-ui-sm text-icon3 flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 py-2"
     >
       <ModesSelection />
       <ActiveModel />

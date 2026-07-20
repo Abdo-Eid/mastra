@@ -8,7 +8,7 @@ export function EmptyFactoryState({ onOpenFactories }: { onOpenFactories: () => 
       <Txt as="h2" variant="header-md" className="text-icon6">
         Welcome to MastraCode
       </Txt>
-      <Txt as="p" variant="ui-md" className="max-w-sm text-icon3">
+      <Txt as="p" variant="ui-md" className="text-icon3 max-w-sm">
         Create a Factory bound to a local folder or GitHub repository to start a coding session. Each Factory keeps its
         own threads, memory, and workspace — shared with the terminal.
       </Txt>

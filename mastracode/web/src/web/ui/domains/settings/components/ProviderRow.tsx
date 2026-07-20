@@ -110,8 +110,8 @@ export function ProviderRow({
     <li className="flex flex-col gap-2 py-2">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          {provider.source !== 'none' && <Check size={13} className="shrink-0 text-accent1" />}
-          <Txt as="span" variant="ui-md" className="truncate text-icon6">
+          {provider.source !== 'none' && <Check size={13} className="text-accent1 shrink-0" />}
+          <Txt as="span" variant="ui-md" className="text-icon6 truncate">
             {displayName}
           </Txt>
           <Badge size="sm" variant={SOURCE_VARIANT[provider.source]}>
@@ -208,7 +208,7 @@ export function ProviderRow({
       )}
 
       {error && (
-        <Txt as="p" variant="ui-sm" className="pl-5 text-notice-destructive-fg">
+        <Txt as="p" variant="ui-sm" className="text-notice-destructive-fg pl-5">
           {error}
         </Txt>
       )}

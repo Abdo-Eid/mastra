@@ -16,13 +16,13 @@ export function EmptyThreadState() {
   return (
     <div className={emptyThreadClass}>
       <Wordmark className="mb-6" />
-      <dl className="mb-4 mt-0 grid gap-0.5">
+      <dl className="mt-0 mb-4 grid gap-0.5">
         <FactoryMetadata label="Factory" value={activeFactory.name} />
         {activeFactory.resourceId && <FactoryMetadata label="Resource ID" value={activeFactory.resourceId} />}
         {gitBranch && <FactoryMetadata label="Branch" value={gitBranch} />}
         {workspace && <FactoryMetadata label="Workspace" value={workspace} />}
       </dl>
-      <p className="mb-6 mt-0 text-icon3">Ready for new conversation</p>
+      <p className="text-icon3 mt-0 mb-6">Ready for new conversation</p>
     </div>
   );
 }

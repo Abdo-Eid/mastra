@@ -70,7 +70,7 @@ function SourceCheckbox({
 }) {
   return (
     <label
-      className={`inline-flex max-w-64 items-center gap-1 rounded-full border px-2.5 py-0.5 cursor-pointer text-ui-sm transition-colors has-disabled:opacity-50 has-disabled:cursor-not-allowed ${
+      className={`text-ui-sm inline-flex max-w-64 cursor-pointer items-center gap-1 rounded-full border px-2.5 py-0.5 transition-colors has-disabled:cursor-not-allowed has-disabled:opacity-50 ${
         checked
           ? 'border-accent1 bg-accent1/10 text-icon6'
           : 'border-border1 text-icon4 hover:border-border2 hover:text-icon5'
@@ -113,7 +113,7 @@ export function IntakeSection() {
 
   if (configQuery.isPending) {
     return (
-      <div className="mt-6 pt-4 border-t border-border1/40">
+      <div className="border-border1/40 mt-6 border-t pt-4">
         {heading}
         <SkeletonRows label="Loading intake sources" rows={4} />
       </div>
@@ -121,7 +121,7 @@ export function IntakeSection() {
   }
   if (configQuery.isError || !config) {
     return (
-      <div className="mt-6 pt-4 border-t border-border1/40">
+      <div className="border-border1/40 mt-6 border-t pt-4">
         {heading}
         <Txt as="p" variant="ui-sm" className="text-icon3 py-4">
           Intake configuration is unavailable. Connect GitHub or Linear first.
@@ -139,7 +139,7 @@ export function IntakeSection() {
   const busy = saveMutation.isPending;
 
   return (
-    <div className="mt-6 pt-4 border-t border-border1/40 flex flex-col gap-6">
+    <div className="border-border1/40 mt-6 flex flex-col gap-6 border-t pt-4">
       {heading}
       <section className="flex flex-col gap-2" aria-label="GitHub intake">
         <SourceHeader
@@ -224,7 +224,7 @@ export function IntakeSection() {
               {groupLinearProjectsByTeam(linearProjectsQuery.data ?? []).map(group => (
                 <div key={group.id} className="flex flex-col gap-1" role="group" aria-label={group.label}>
                   <div className="flex items-baseline gap-2">
-                    <Txt as="span" variant="ui-xs" className="font-medium uppercase tracking-wide text-icon3">
+                    <Txt as="span" variant="ui-xs" className="text-icon3 font-medium tracking-wide uppercase">
                       {group.label}
                     </Txt>
                     <SelectedCount ids={config.linear.projectIds} projects={group.projects} />

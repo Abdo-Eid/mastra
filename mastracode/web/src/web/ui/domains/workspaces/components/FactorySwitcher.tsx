@@ -23,20 +23,20 @@ export function FactorySwitcher() {
       <DropdownMenu.Trigger
         id="factory-switcher-trigger"
         aria-label="Select factory"
-        className="flex w-full items-center gap-2 rounded-md border border-border1 px-2.5 py-2 text-left hover:bg-surface3"
+        className="border-border1 hover:bg-surface3 flex w-full items-center gap-2 rounded-md border px-2.5 py-2 text-left"
       >
-        <Folder size={16} className="shrink-0 text-icon3" />
+        <Folder size={16} className="text-icon3 shrink-0" />
         <span className="flex min-w-0 flex-1 flex-col">
-          <Txt as="span" variant="ui-sm" className="truncate text-icon6">
+          <Txt as="span" variant="ui-sm" className="text-icon6 truncate">
             {activeFactory?.name ?? 'Select a factory…'}
           </Txt>
           {activeFactory && (
-            <Txt as="span" variant="ui-xs" className="truncate text-icon3">
+            <Txt as="span" variant="ui-xs" className="text-icon3 truncate">
               {deriveProjectPath(activeFactory)}
             </Txt>
           )}
         </span>
-        <ChevronsUpDown size={13} className="shrink-0 text-icon3" />
+        <ChevronsUpDown size={13} className="text-icon3 shrink-0" />
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="start" className="w-64">
         {factories.map(factory => (

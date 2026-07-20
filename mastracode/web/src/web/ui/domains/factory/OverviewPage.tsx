@@ -70,10 +70,10 @@ function OverviewContent({ factoryProjectId }: { factoryProjectId: string | unde
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
-      <section className="flex flex-col gap-3 rounded-lg border border-border1 bg-surface2 p-3">
-        <h2 className="m-0 text-ui-md font-medium text-icon5">Queue health</h2>
+      <section className="border-border1 bg-surface2 flex flex-col gap-3 rounded-lg border p-3">
+        <h2 className="text-ui-md text-icon5 m-0 font-medium">Queue health</h2>
         {!workItemsQuery.data ? (
-          <Txt as="p" variant="ui-sm" className="m-0 text-icon3">
+          <Txt as="p" variant="ui-sm" className="text-icon3 m-0">
             Loading queue health…
           </Txt>
         ) : (
@@ -81,8 +81,8 @@ function OverviewContent({ factoryProjectId }: { factoryProjectId: string | unde
         )}
       </section>
 
-      <section className="flex flex-col gap-2 rounded-lg border border-border1 bg-surface2 p-3">
-        <h2 className="m-0 text-ui-md font-medium text-icon5">Tasks</h2>
+      <section className="border-border1 bg-surface2 flex flex-col gap-2 rounded-lg border p-3">
+        <h2 className="text-ui-md text-icon5 m-0 font-medium">Tasks</h2>
         <DrillDownList selected={selected} entries={drillDown} />
       </section>
     </div>
@@ -116,7 +116,7 @@ function DrillDownList({
 }) {
   if (!selected || !entries || selected.bucket === null) {
     return (
-      <Txt as="p" variant="ui-sm" className="m-0 text-icon3">
+      <Txt as="p" variant="ui-sm" className="text-icon3 m-0">
         Select a segment above to see its tasks.
       </Txt>
     );
@@ -125,42 +125,42 @@ function DrillDownList({
   const heading = `${stageLabel(selected.stage)} · ${BUCKET_LABEL[bucket]}`;
   if (entries.length === 0) {
     return (
-      <Txt as="p" variant="ui-sm" className="m-0 text-icon3">
+      <Txt as="p" variant="ui-sm" className="text-icon3 m-0">
         No tasks in {heading.toLowerCase()}.
       </Txt>
     );
   }
   return (
     <>
-      <Txt as="p" variant="ui-sm" className="m-0 text-icon4">
+      <Txt as="p" variant="ui-sm" className="text-icon4 m-0">
         {heading} — {entries.length} {entries.length === 1 ? 'task' : 'tasks'}
       </Txt>
       <ul className="m-0 flex list-none flex-col p-0">
         {entries.map(entry => (
           <li
             key={`${entry.itemId}:${entry.stage}`}
-            className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 border-b border-border1 py-1.5 last:border-b-0"
+            className="border-border1 grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 border-b py-1.5 last:border-b-0"
           >
             {entry.url ? (
               <a
                 href={entry.url}
                 target="_blank"
                 rel="noreferrer"
-                className="truncate text-ui-sm text-icon5 no-underline hover:text-icon6 hover:underline"
+                className="text-ui-sm text-icon5 hover:text-icon6 truncate no-underline hover:underline"
               >
                 {entry.title}
               </a>
             ) : (
-              <span className="truncate text-ui-sm text-icon5">{entry.title}</span>
+              <span className="text-ui-sm text-icon5 truncate">{entry.title}</span>
             )}
-            <span className="rounded-full bg-surface5 px-1.5 py-0.5 text-ui-xs text-icon4">
+            <span className="bg-surface5 text-ui-xs text-icon4 rounded-full px-1.5 py-0.5">
               {stageLabel(entry.stage)}
             </span>
             <Txt as="span" variant="ui-xs" className="text-icon3">
               in stage {formatAgeSeconds(entry.ageSeconds)}
             </Txt>
             {entry.active ? (
-              <span className="rounded-full bg-green-500/15 px-1.5 py-0.5 text-ui-xs text-green-500">active</span>
+              <span className="text-ui-xs rounded-full bg-green-500/15 px-1.5 py-0.5 text-green-500">active</span>
             ) : (
               <span />
             )}

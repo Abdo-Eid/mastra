@@ -43,16 +43,16 @@ function SignalDistribution({
 
   return (
     <Card aria-label={`${label} distribution`} as="article" className="min-w-0" elevation="elevated">
-      <CardHeader className="border-b border-border1 px-4 py-3">
+      <CardHeader className="border-border1 border-b px-4 py-3">
         <h3 className="font-mono text-xs font-semibold tracking-wider" style={{ color }}>
           {label.toUpperCase()}
         </h3>
       </CardHeader>
       <CardContent className="space-y-4 p-4">
-        <p className="font-mono text-[10px] tracking-wider text-neutral3">{traceLabel(traceCount)}</p>
+        <p className="text-neutral3 font-mono text-[10px] tracking-wider">{traceLabel(traceCount)}</p>
         <div
           aria-label={`${label} stacked distribution`}
-          className="flex h-1.5 overflow-hidden rounded-sm bg-surface4"
+          className="bg-surface4 flex h-1.5 overflow-hidden rounded-sm"
           data-testid="distribution-stack"
         >
           {nodes.map((node, index) => (
@@ -72,7 +72,7 @@ function SignalDistribution({
           {nodes.length > 0 ? (
             nodes.map((node, index) => (
               <li key={node.nodeId} className="flex min-w-0 items-center justify-between gap-3 text-xs">
-                <span className="flex min-w-0 items-center gap-2 text-neutral5">
+                <span className="text-neutral5 flex min-w-0 items-center gap-2">
                   <span
                     aria-hidden="true"
                     className="size-2 shrink-0 rounded-[2px]"
@@ -82,13 +82,13 @@ function SignalDistribution({
                     {node.label}
                   </span>
                 </span>
-                <span className="shrink-0 font-mono text-neutral3">
+                <span className="text-neutral3 shrink-0 font-mono">
                   {node.traceCount} · {Math.round(node.stageShare * 100)}%
                 </span>
               </li>
             ))
           ) : (
-            <li className="text-xs text-neutral3">No themes detected</li>
+            <li className="text-neutral3 text-xs">No themes detected</li>
           )}
         </ul>
       </CardContent>
@@ -146,14 +146,14 @@ function FlowCard({
           <SankeyChart height={height ?? 680} margin={{ top: 64, right: 160, bottom: 48, left: 160 }} />
         </Sankey>
       </CardContent>
-      <CardFooter className="flex justify-between gap-6 border-t border-border1 bg-surface2 px-4 py-3">
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-1 font-mono text-[10px] tracking-wider text-neutral3">
+      <CardFooter className="border-border1 bg-surface2 flex justify-between gap-6 border-t px-4 py-3">
+        <div className="text-neutral3 flex flex-wrap items-center gap-x-5 gap-y-1 font-mono text-[10px] tracking-wider">
           <span>RIBBON WIDTH = TRACE COUNT</span>
           <span>HOVER OR FOCUS TO ISOLATE FLOW</span>
         </div>
         <ul
           aria-label="Signal stage legend"
-          className="flex shrink-0 items-center gap-4 text-xs text-neutral3"
+          className="text-neutral3 flex shrink-0 items-center gap-4 text-xs"
           data-alignment="right"
         >
           {SIGNAL_ORDER.map(signalName => (
@@ -185,7 +185,7 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
         className="flex h-[640px] items-center justify-center"
         role="status"
       >
-        <div className="size-8 animate-spin rounded-full border-2 border-border1 border-t-accent1" />
+        <div className="border-border1 border-t-accent1 size-8 animate-spin rounded-full border-2" />
       </section>
     );
   }
@@ -208,29 +208,29 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
     <main className="space-y-7 p-6">
       <header className="flex items-start justify-between gap-8" data-testid="signals-page-header">
         <div className="max-w-2xl">
-          <div className="flex items-center gap-2 font-mono text-xs font-semibold tracking-widest text-neutral4">
-            <span aria-hidden="true" className="size-2 rounded-full bg-accent1" />
+          <div className="text-neutral4 flex items-center gap-2 font-mono text-xs font-semibold tracking-widest">
+            <span aria-hidden="true" className="bg-accent1 size-2 rounded-full" />
             SIGNALS
           </div>
-          <h1 className="mt-3 text-2xl font-semibold text-neutral6">Understand what drives every agent interaction</h1>
-          <p className="mt-2 text-sm leading-6 text-neutral3">
+          <h1 className="text-neutral6 mt-3 text-2xl font-semibold">Understand what drives every agent interaction</h1>
+          <p className="text-neutral3 mt-2 text-sm leading-6">
             Signals group recurring patterns across traces so you can see how goals, outcomes, behaviors, and sentiment
             connect.
           </p>
           <ul aria-label="Signal analysis metrics" className="mt-5 flex flex-wrap gap-2">
-            <li className="rounded-md border border-border1 bg-surface2 px-3 py-1.5 text-xs text-neutral4">
+            <li className="border-border1 bg-surface2 text-neutral4 rounded-md border px-3 py-1.5 text-xs">
               {traceLabel(graphSummary.analyzedTraceCount)} analyzed
             </li>
-            <li className="rounded-md border border-border1 bg-surface2 px-3 py-1.5 text-xs text-neutral4">
+            <li className="border-border1 bg-surface2 text-neutral4 rounded-md border px-3 py-1.5 text-xs">
               {clusterCount} clusters
             </li>
-            <li className="rounded-md border border-border1 bg-surface2 px-3 py-1.5 text-xs text-neutral4">
+            <li className="border-border1 bg-surface2 text-neutral4 rounded-md border px-3 py-1.5 text-xs">
               {flow.stages.length} signal types
             </li>
           </ul>
         </div>
         <a
-          className="flex shrink-0 items-center gap-1.5 text-xs text-neutral4 transition-colors hover:text-neutral6 focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="text-neutral4 hover:text-neutral6 flex shrink-0 items-center gap-1.5 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
           href={SIGNAL_DOCS_URL}
           rel="noreferrer"
           target="_blank"

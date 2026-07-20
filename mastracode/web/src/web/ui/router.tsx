@@ -31,7 +31,7 @@ import { OverviewPage } from './domains/factory/OverviewPage';
  */
 function AuthPendingSkeleton({ label = 'Checking sign-in' }: { label?: string }) {
   return (
-    <div role="status" aria-label={label} className="flex h-dvh w-full items-center justify-center bg-surface1">
+    <div role="status" aria-label={label} className="bg-surface1 flex h-dvh w-full items-center justify-center">
       <div className="flex w-64 flex-col gap-3">
         <Skeleton className="h-8 w-full" />
         <Skeleton className="h-4 w-3/4" />
@@ -79,7 +79,7 @@ function RootLanding() {
   if (factoryProjectId && workItems.isPending) return <AuthPendingSkeleton label="Loading Factory board" />;
   if (factoryProjectId && workItems.isError) {
     return (
-      <div className="flex h-dvh w-full items-center justify-center bg-surface1 p-4">
+      <div className="bg-surface1 flex h-dvh w-full items-center justify-center p-4">
         <Notice variant="destructive">
           {workItems.error instanceof Error ? workItems.error.message : 'Failed to load Factory work'}
         </Notice>

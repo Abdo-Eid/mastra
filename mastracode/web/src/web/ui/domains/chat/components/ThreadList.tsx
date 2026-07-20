@@ -57,7 +57,7 @@ export function ThreadList() {
       {!readOnly && <ThreadListHeader threadCount={threads.length} />}
       <div role="list" className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
         {sortedThreads.length === 0 && (
-          <Txt as="div" variant="ui-sm" className="px-2 py-3 text-icon3">
+          <Txt as="div" variant="ui-sm" className="text-icon3 px-2 py-3">
             No threads yet
           </Txt>
         )}
@@ -96,7 +96,7 @@ function ThreadListHeader({ threadCount }: { threadCount: number }) {
 
   return (
     <div className="flex items-center justify-between px-1">
-      <Txt as="span" variant="ui-xs" className="flex items-center gap-1.5 text-icon3 uppercase tracking-wide">
+      <Txt as="span" variant="ui-xs" className="text-icon3 flex items-center gap-1.5 tracking-wide uppercase">
         Threads
         {threadCount > 0 && (
           <Badge variant="default" size="xs">
@@ -196,7 +196,7 @@ function ThreadRow({
         className="flex w-full flex-col gap-0.5 rounded-md px-2 py-2 text-left"
         onClick={openThread}
       >
-        <span className="truncate text-ui-sm text-icon6">{thread.title || 'Untitled thread'}</span>
+        <span className="text-ui-sm text-icon6 truncate">{thread.title || 'Untitled thread'}</span>
         <span className="text-ui-xs text-icon3">{relativeTime(thread.updatedAt ?? thread.createdAt ?? '')}</span>
       </button>
       {!readOnly && (
@@ -208,7 +208,7 @@ function ThreadRow({
                 variant="ghost"
                 size="icon-sm"
                 aria-label="Thread actions"
-                className="absolute right-1 top-1 opacity-0 group-hover:opacity-100 data-[popup-open]:opacity-100"
+                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 data-[popup-open]:opacity-100"
               >
                 <MoreHorizontal size={15} />
               </Button>

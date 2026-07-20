@@ -51,7 +51,7 @@ function RepositorySetupRow({ projectRepositoryId, label }: { projectRepositoryI
           onKeyDown={e => {
             if (e.key === 'Enter' && dirty) save();
           }}
-          className="flex-1 rounded-md border border-border1 bg-transparent px-2.5 py-1.5 text-ui-sm text-icon6 font-mono placeholder:text-icon3 focus:outline-none focus:border-border2 disabled:opacity-50"
+          className="border-border1 text-ui-sm text-icon6 placeholder:text-icon3 focus:border-border2 flex-1 rounded-md border bg-transparent px-2.5 py-1.5 font-mono focus:outline-none disabled:opacity-50"
         />
         <Button size="xs" disabled={!dirty || settingsQuery.isPending || saveMutation.isPending} onClick={save}>
           Save
@@ -78,7 +78,7 @@ export function FactorySetupSection() {
   if (rows.length === 0) return null;
 
   return (
-    <div className="mt-6 pt-4 border-t border-border1/40 flex flex-col gap-4">
+    <div className="border-border1/40 mt-6 flex flex-col gap-4 border-t pt-4">
       <div className="flex flex-col">
         <Txt variant="ui-lg" className="text-icon6 font-medium">
           Worktree setup
