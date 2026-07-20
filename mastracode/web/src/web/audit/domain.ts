@@ -162,7 +162,8 @@ export class AuditDomain extends FactoryDomain implements AuditEmitter, AuditAge
   }): Promise<void> {
     try {
       const context = requestContext.get('controller') as
-        AgentControllerRequestContext<FactorySessionState> | undefined;
+        | AgentControllerRequestContext<FactorySessionState>
+        | undefined;
       const user = requestContext.get('user') as WebAuthUser | undefined;
       const orgId = getWebAuthOrgId(user);
       const userId = getWebAuthUserId(user);

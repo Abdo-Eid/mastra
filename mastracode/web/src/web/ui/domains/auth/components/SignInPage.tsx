@@ -62,7 +62,7 @@ function CredentialSignInForm({ returnTo, signUpDisabled }: { returnTo: string; 
   return (
     <form onSubmit={handleSubmit} className="flex w-full flex-col gap-5">
       {mode === 'sign-up' ? (
-        <label className="flex flex-col gap-2 text-sm font-medium text-neutral5">
+        <label className="text-neutral5 flex flex-col gap-2 text-sm font-medium">
           Name
           <Input
             type="text"
@@ -75,7 +75,7 @@ function CredentialSignInForm({ returnTo, signUpDisabled }: { returnTo: string; 
           />
         </label>
       ) : null}
-      <label className="flex flex-col gap-2 text-sm font-medium text-neutral5">
+      <label className="text-neutral5 flex flex-col gap-2 text-sm font-medium">
         Email
         <Input
           type="email"
@@ -87,7 +87,7 @@ function CredentialSignInForm({ returnTo, signUpDisabled }: { returnTo: string; 
           onChange={e => setEmail(e.target.value)}
         />
       </label>
-      <label className="flex flex-col gap-2 text-sm font-medium text-neutral5">
+      <label className="text-neutral5 flex flex-col gap-2 text-sm font-medium">
         Password
         <Input
           type="password"
@@ -121,7 +121,7 @@ function CredentialSignInForm({ returnTo, signUpDisabled }: { returnTo: string; 
           {mode === 'sign-up' ? 'Have an account? Sign in' : 'New here? Sign up'}
         </Button>
       ) : (
-        <Txt as="p" variant="ui-sm" className="text-center text-neutral3">
+        <Txt as="p" variant="ui-sm" className="text-neutral3 text-center">
           Account creation is managed by your administrator.
         </Txt>
       )}
@@ -144,27 +144,27 @@ export function SignInPage() {
   const credentialForm = auth.data?.provider === 'better-auth';
 
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-surface1 text-neutral6">
+    <main className="bg-surface1 text-neutral6 relative min-h-dvh overflow-hidden">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,color-mix(in_oklab,var(--accent1)_15%,transparent),transparent_32%),radial-gradient(circle_at_85%_80%,color-mix(in_oklab,var(--accent3)_12%,transparent),transparent_34%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border1)_1px,transparent_1px),linear-gradient(to_bottom,var(--border1)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:linear-gradient(to_bottom,black,transparent_85%)]" />
-        <div className="absolute top-[-12rem] left-1/2 h-[28rem] w-[42rem] -translate-x-1/2 rounded-full bg-accent1/5 blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border1)_1px,transparent_1px),linear-gradient(to_bottom,var(--border1)_1px,transparent_1px)] [mask-image:linear-gradient(to_bottom,black,transparent_85%)] bg-[size:56px_56px]" />
+        <div className="bg-accent1/5 absolute top-[-12rem] left-1/2 h-[28rem] w-[42rem] -translate-x-1/2 rounded-full blur-3xl" />
       </div>
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-7xl items-center px-6 py-10 sm:px-10 lg:px-16 lg:py-16">
         <section className="flex w-full max-w-4xl flex-col items-start">
           <div className="mb-12 flex items-center gap-3" aria-label="Mastra Factory">
-            <LogoWithoutText className="w-9 text-accent1" aria-hidden="true" />
+            <LogoWithoutText className="text-accent1 w-9" aria-hidden="true" />
             <span className="font-mona-sans text-lg font-semibold tracking-tight">Mastra Factory</span>
           </div>
 
-          <Txt as="p" variant="ui-md" className="mb-5 font-medium tracking-wide text-accent1 uppercase">
+          <Txt as="p" variant="ui-md" className="text-accent1 mb-5 font-medium tracking-wide uppercase">
             From backlog to production
           </Txt>
-          <h1 className="max-w-3xl font-mona-sans text-4xl leading-[1.02] font-semibold tracking-[-0.04em] text-balance sm:text-5xl lg:text-6xl">
+          <h1 className="font-mona-sans max-w-3xl text-4xl leading-[1.02] font-semibold tracking-[-0.04em] text-balance sm:text-5xl lg:text-6xl">
             Turn issues into production-ready code.
           </h1>
-          <Txt as="p" variant="ui-lg" className="mt-7 max-w-2xl leading-7 text-neutral3 sm:text-lg">
+          <Txt as="p" variant="ui-lg" className="text-neutral3 mt-7 max-w-2xl leading-7 sm:text-lg">
             Mastra Factory turns work from GitHub Issues, Linear, and other trackers into reviewed pull requests that
             are ready to merge and ship.
           </Txt>
@@ -174,7 +174,7 @@ export function SignInPage() {
               <>
                 <div className="mb-7">
                   <h2 className="font-display text-2xl font-semibold tracking-tight">Welcome back</h2>
-                  <Txt as="p" variant="ui-md" className="mt-2 leading-6 text-neutral3">
+                  <Txt as="p" variant="ui-md" className="text-neutral3 mt-2 leading-6">
                     Sign in to continue building with your team.
                   </Txt>
                 </div>

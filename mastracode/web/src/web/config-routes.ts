@@ -271,7 +271,8 @@ export async function buildProviderAccess(
  * scoped per org. Mirrors `resolveCredentialContext`.
  */
 export type PackContext =
-  { mode: 'local' } | { mode: 'tenant'; storage: ModelPacksStorage; orgId: string; userId: string };
+  | { mode: 'local' }
+  | { mode: 'tenant'; storage: ModelPacksStorage; orgId: string; userId: string };
 
 /** The tenant model-packs domain, when registered and ready (fail-soft). */
 async function getTenantModelPacksStorage(): Promise<ModelPacksStorage | undefined> {

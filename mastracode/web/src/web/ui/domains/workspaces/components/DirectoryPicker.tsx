@@ -135,12 +135,12 @@ function DirectoryEntries({ entries, busy, navigating, navigate }: DirectoryEntr
       )}
       <ScrollArea className="min-h-0 flex-1">
         {entries.length === 0 && (
-          <Txt as="div" variant="ui-sm" className="px-2 py-1.5 text-icon3">
+          <Txt as="div" variant="ui-sm" className="text-icon3 px-2 py-1.5">
             No subfolders here
           </Txt>
         )}
         {entries.length > 0 && visibleEntries.length === 0 && (
-          <Txt as="div" variant="ui-sm" className="px-2 py-1.5 text-icon3">
+          <Txt as="div" variant="ui-sm" className="text-icon3 px-2 py-1.5">
             No matching folders
           </Txt>
         )}
@@ -218,7 +218,7 @@ export function DirectoryBrowser({ onPick, busy = false, error: pickError = null
       )}
       {error && (
         <ScrollArea className="min-h-0 flex-1">
-          <Txt as="div" variant="ui-sm" className="px-2 py-1.5 text-notice-destructive-fg">
+          <Txt as="div" variant="ui-sm" className="text-notice-destructive-fg px-2 py-1.5">
             {error}
           </Txt>
         </ScrollArea>

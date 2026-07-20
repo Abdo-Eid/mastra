@@ -588,11 +588,11 @@ describe('Factory Work and Review intake candidates', () => {
       ],
     });
     const scrollTo = vi.spyOn(HTMLElement.prototype, 'scrollTo').mockImplementation(() => undefined);
-    const offsetLeft = vi.spyOn(HTMLElement.prototype, 'offsetLeft', 'get').mockImplementation(function (
-      this: HTMLElement,
-    ) {
-      return this.dataset.testid === 'board-column-review' ? 864 : 0;
-    });
+    const offsetLeft = vi
+      .spyOn(HTMLElement.prototype, 'offsetLeft', 'get')
+      .mockImplementation(function (this: HTMLElement) {
+        return this.dataset.testid === 'board-column-review' ? 864 : 0;
+      });
 
     try {
       const { client } = renderAt('/factory/review');

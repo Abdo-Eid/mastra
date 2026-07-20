@@ -1742,7 +1742,7 @@ importers:
         specifier: ^26.1.0
         version: 26.1.0(bufferutil@4.1.0)
       oxfmt:
-        specifier: 'catalog:'
+        specifier: 0.59.0
         version: 0.59.0
       postcss:
         specifier: ^8.5.8

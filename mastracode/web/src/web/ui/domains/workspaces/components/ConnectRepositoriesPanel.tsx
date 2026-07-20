@@ -48,18 +48,18 @@ export function ConnectRepositoriesPanel({ factory }: { factory: ServerFactory }
     <div className="flex flex-col gap-4" aria-label="Connect repositories">
       {linked.length > 0 && (
         <div className="flex flex-col gap-2">
-          <Txt as="h3" variant="ui-sm" className="font-medium text-icon5">
+          <Txt as="h3" variant="ui-sm" className="text-icon5 font-medium">
             Linked repositories
           </Txt>
           {linked.map(repo => (
             <div
               key={repo.projectRepositoryId}
-              className="flex items-center gap-3 rounded-xl border border-border1 bg-surface2 px-3 py-2"
+              className="border-border1 bg-surface2 flex items-center gap-3 rounded-xl border px-3 py-2"
             >
-              <GithubIcon size={16} className="shrink-0 text-icon3" />
+              <GithubIcon size={16} className="text-icon3 shrink-0" />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-ui-sm font-medium text-icon6">{repo.slug}</span>
-                {repo.gitBranch && <span className="block truncate text-ui-xs text-icon3">{repo.gitBranch}</span>}
+                <span className="text-ui-sm text-icon6 block truncate font-medium">{repo.slug}</span>
+                {repo.gitBranch && <span className="text-ui-xs text-icon3 block truncate">{repo.gitBranch}</span>}
               </span>
               <Button
                 variant="ghost"
@@ -97,10 +97,10 @@ export function ConnectRepositoriesPanel({ factory }: { factory: ServerFactory }
         )
       ) : (
         <>
-          <div className="flex items-center gap-2 rounded-lg border border-border1 bg-surface2 px-3 py-2">
-            <SearchIcon size={15} className="shrink-0 text-icon2" />
+          <div className="border-border1 bg-surface2 flex items-center gap-2 rounded-lg border px-3 py-2">
+            <SearchIcon size={15} className="text-icon2 shrink-0" />
             <input
-              className="min-w-0 flex-1 bg-transparent text-ui-sm text-icon6 placeholder:text-icon2 focus:outline-none"
+              className="text-ui-sm text-icon6 placeholder:text-icon2 min-w-0 flex-1 bg-transparent focus:outline-none"
               type="text"
               placeholder="Filter repositories…"
               value={query}
@@ -109,7 +109,7 @@ export function ConnectRepositoriesPanel({ factory }: { factory: ServerFactory }
           </div>
 
           {error && (
-            <Txt as="p" variant="ui-sm" className="m-0 text-notice-destructive-fg">
+            <Txt as="p" variant="ui-sm" className="text-notice-destructive-fg m-0">
               {error.message}
             </Txt>
           )}
@@ -118,29 +118,29 @@ export function ConnectRepositoriesPanel({ factory }: { factory: ServerFactory }
             {reposQuery.isPending ? (
               <SkeletonRows label="Loading repositories" rows={3} rowClassName="h-12 w-full rounded-xl" />
             ) : available.length === 0 ? (
-              <Txt as="p" variant="ui-sm" className="m-0 text-icon3">
+              <Txt as="p" variant="ui-sm" className="text-icon3 m-0">
                 {repos.length > 0 ? 'All available repositories are linked.' : 'No repositories found.'}
               </Txt>
             ) : (
               available.map(repo => (
                 <button
                   key={repo.id}
-                  className="flex items-center gap-3 rounded-xl border border-border1 bg-surface2 px-3 py-2 text-left hover:border-border2 hover:bg-surface4 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="border-border1 bg-surface2 hover:border-border2 hover:bg-surface4 flex items-center gap-3 rounded-xl border px-3 py-2 text-left disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={busyRepoId !== null}
                   onClick={() => linkRepository.mutate({ factoryProjectId, repo })}
                   title={repo.fullName}
                 >
-                  <FolderIcon size={18} className="shrink-0 text-icon3" />
+                  <FolderIcon size={18} className="text-icon3 shrink-0" />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-ui-sm font-medium text-icon6">{repo.fullName}</span>
-                    <span className="block truncate text-ui-xs text-icon3">
+                    <span className="text-ui-sm text-icon6 block truncate font-medium">{repo.fullName}</span>
+                    <span className="text-ui-xs text-icon3 block truncate">
                       {repo.private ? 'private' : 'public'} · {repo.defaultBranch}
                     </span>
                   </span>
                   {busyRepoId === repo.id ? (
-                    <span className="shrink-0 text-ui-xs text-icon3">Linking…</span>
+                    <span className="text-ui-xs text-icon3 shrink-0">Linking…</span>
                   ) : (
-                    <span className="shrink-0 text-ui-xs text-accent1">Link</span>
+                    <span className="text-ui-xs text-accent1 shrink-0">Link</span>
                   )}
                 </button>
               ))
@@ -149,7 +149,7 @@ export function ConnectRepositoriesPanel({ factory }: { factory: ServerFactory }
 
           {/* Re-run the install flow: GitHub's own page adds/removes accounts
               and repo access; the callback re-syncs installations here. */}
-          <div className="flex items-center justify-between gap-3 border-t border-border1 pt-3">
+          <div className="border-border1 flex items-center justify-between gap-3 border-t pt-3">
             <Txt as="span" variant="ui-xs" className="text-icon3">
               Missing a repository or connected the wrong account?
             </Txt>

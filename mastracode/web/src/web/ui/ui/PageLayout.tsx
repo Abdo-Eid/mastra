@@ -27,9 +27,9 @@ export function PageLayout({ sidebar, header, title, description, actions, child
   const view = useContext(PageLayoutMainViewContext);
 
   return (
-    <div className="relative z-1 flex h-screen overflow-hidden bg-surface1">
+    <div className="bg-surface1 relative z-1 flex h-screen overflow-hidden">
       <aside className="h-full min-h-0 shrink-0 overflow-hidden py-5">{sidebar}</aside>
-      <div className="relative z-1 flex min-w-0 flex-1 flex-col overflow-hidden border-l border-border1 bg-surface2">
+      <div className="border-border1 bg-surface2 relative z-1 flex min-w-0 flex-1 flex-col overflow-hidden border-l">
         {header}
         <main
           className="flex min-h-0 flex-1 flex-col overflow-hidden"
@@ -42,9 +42,9 @@ export function PageLayout({ sidebar, header, title, description, actions, child
               <div className="flex min-h-0 w-full flex-1 flex-col gap-4">
                 <header className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 flex-col gap-1">
-                    {title !== undefined && <h1 className="m-0 text-xl text-icon6">{title}</h1>}
+                    {title !== undefined && <h1 className="text-icon6 m-0 text-xl">{title}</h1>}
                     {description !== undefined && (
-                      <Txt as="p" variant="ui-sm" className="m-0 text-icon3">
+                      <Txt as="p" variant="ui-sm" className="text-icon3 m-0">
                         {description}
                       </Txt>
                     )}

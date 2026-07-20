@@ -88,7 +88,7 @@ export function ProvidersSection() {
       )}
 
       <div className="flex flex-col gap-1">
-        <Txt as="h3" variant="ui-lg" className="font-medium text-icon6">
+        <Txt as="h3" variant="ui-lg" className="text-icon6 font-medium">
           Sign in with a provider
         </Txt>
         <Txt as="p" variant="ui-sm" className="text-icon3">
@@ -103,7 +103,7 @@ export function ProvidersSection() {
           No providers support sign in.
         </Txt>
       ) : (
-        <ul role="list" aria-label="Sign in providers" className="flex flex-col divide-y divide-border1">
+        <ul role="list" aria-label="Sign in providers" className="divide-border1 flex flex-col divide-y">
           {oauthProviders.map(provider => (
             <ProviderRow
               key={provider.provider}
@@ -118,15 +118,15 @@ export function ProvidersSection() {
       )}
 
       <div className="flex items-center gap-3" aria-hidden="true">
-        <div className="h-px flex-1 bg-border1" />
+        <div className="bg-border1 h-px flex-1" />
         <Txt as="span" variant="ui-xs" className="text-icon3">
           OR
         </Txt>
-        <div className="h-px flex-1 bg-border1" />
+        <div className="bg-border1 h-px flex-1" />
       </div>
 
       <div className="relative">
-        <Search size={14} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-icon3" />
+        <Search size={14} className="text-icon3 pointer-events-none absolute top-1/2 left-3 -translate-y-1/2" />
         <Input
           type="text"
           placeholder="Search providers to add an API key…"
@@ -146,9 +146,9 @@ export function ProvidersSection() {
           <ScrollArea
             maxHeight={`${API_KEY_LIST_MAX_HEIGHT}px`}
             viewportRef={apiKeyListRef}
-            className="min-h-0 rounded-md border border-border1"
+            className="border-border1 min-h-0 rounded-md border"
           >
-            <ul role="list" aria-label="API key providers" className="flex flex-col divide-y divide-border1 px-2">
+            <ul role="list" aria-label="API key providers" className="divide-border1 flex flex-col divide-y px-2">
               {results.map(provider => (
                 <ProviderRow
                   key={provider.provider}

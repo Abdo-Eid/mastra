@@ -700,10 +700,10 @@ function BoardContent({
                       type="button"
                       aria-pressed={activeIntakeSource === source.id}
                       onClick={() => setIntakeSource(source.id)}
-                      className={`rounded-full border px-2.5 py-0.5 text-ui-xs transition ${
+                      className={`text-ui-xs rounded-full border px-2.5 py-0.5 transition ${
                         activeIntakeSource === source.id
                           ? 'border-accent1 bg-surface4 text-icon6'
-                          : 'border-border1 bg-transparent text-icon3 hover:text-icon5'
+                          : 'border-border1 text-icon3 hover:text-icon5 bg-transparent'
                       }`}
                     >
                       {source.label}
@@ -888,7 +888,7 @@ function BoardColumn({
       }}
     >
       <div className="flex items-center justify-between gap-2 px-1">
-        <Txt as="h2" variant="ui-xs" className="m-0 uppercase tracking-wide text-icon3">
+        <Txt as="h2" variant="ui-xs" className="text-icon3 m-0 tracking-wide uppercase">
           {label}
         </Txt>
         {headerAction}
@@ -971,7 +971,7 @@ function WorkItemCard({
       data-testid="work-item-card"
       data-related={relatedItems.length > 0 ? 'true' : undefined}
       onDragStart={event => setDragPayload(event, { kind: 'work-item', id: item.id, fromStage: columnStage })}
-      className="flex cursor-grab flex-col gap-1.5 rounded-md border border-border1 bg-surface4 p-2 active:cursor-grabbing"
+      className="border-border1 bg-surface4 flex cursor-grab flex-col gap-1.5 rounded-md border p-2 active:cursor-grabbing"
     >
       <div className="flex items-start gap-2">
         <Icon size={14} className={`mt-0.5 shrink-0 ${iconClassName}`} aria-hidden />
@@ -982,7 +982,7 @@ function WorkItemCard({
               event.preventDefault();
               onOpenThread(threadSession);
             }}
-            className="min-w-0 flex-1 truncate text-ui-sm text-icon6 no-underline hover:underline"
+            className="text-ui-sm text-icon6 min-w-0 flex-1 truncate no-underline hover:underline"
           >
             <SourceTitle source={item.source} title={item.title} />
           </a>
@@ -992,7 +992,7 @@ function WorkItemCard({
             disabled={runDisabled}
             aria-busy={pendingRunRoles.size > 0 || undefined}
             onClick={() => onCreateSession(itemSessionSpec(item))}
-            className="min-w-0 flex-1 truncate text-left text-ui-sm text-icon6 hover:underline disabled:opacity-60"
+            className="text-ui-sm text-icon6 min-w-0 flex-1 truncate text-left hover:underline disabled:opacity-60"
           >
             <SourceTitle source={item.source} title={item.title} />
           </button>
@@ -1003,7 +1003,7 @@ function WorkItemCard({
             target="_blank"
             rel="noreferrer"
             aria-label={externalLinkLabel(item.source)}
-            className="mt-0.5 shrink-0 text-icon3 hover:text-icon5"
+            className="text-icon3 hover:text-icon5 mt-0.5 shrink-0"
           >
             <ExternalLink size={12} aria-hidden />
           </a>
@@ -1056,7 +1056,7 @@ function WorkItemCard({
               event.preventDefault();
               onOpenThread(relatedSession);
             }}
-            className="flex items-center gap-1 text-ui-xs text-icon4 hover:text-icon6 hover:underline"
+            className="text-ui-xs text-icon4 hover:text-icon6 flex items-center gap-1 hover:underline"
             aria-label={`Open ${relationText}`}
           >
             <Link2 size={11} aria-hidden />
@@ -1067,7 +1067,7 @@ function WorkItemCard({
       {otherStages.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5">
           {otherStages.map(stage => (
-            <span key={stage} className="rounded-full bg-surface5 px-1.5 py-0.5 text-ui-xs text-icon4">
+            <span key={stage} className="bg-surface5 text-ui-xs text-icon4 rounded-full px-1.5 py-0.5">
               {itemStageLabel(item, stage)}
             </span>
           ))}
@@ -1121,7 +1121,7 @@ function CandidateCard({
           },
         })
       }
-      className="flex cursor-grab flex-col gap-1 rounded-md border border-border1 border-dashed bg-surface3 p-2 active:cursor-grabbing"
+      className="border-border1 bg-surface3 flex cursor-grab flex-col gap-1 rounded-md border border-dashed p-2 active:cursor-grabbing"
     >
       <div className="flex items-start gap-2">
         <Icon size={14} className={`mt-0.5 shrink-0 ${candidate.iconClassName}`} aria-hidden />
@@ -1131,18 +1131,18 @@ function CandidateCard({
             disabled={disabled}
             aria-busy={pendingRunRoles.has(defaultAction.role) || undefined}
             onClick={onOpenSession}
-            className="truncate text-left text-ui-sm text-icon6 hover:underline disabled:opacity-60"
+            className="text-ui-sm text-icon6 truncate text-left hover:underline disabled:opacity-60"
           >
             <SourceTitle source={candidate.source} title={candidate.title} />
           </button>
-          <span className="block truncate text-ui-xs text-icon3">{candidate.meta}</span>
+          <span className="text-ui-xs text-icon3 block truncate">{candidate.meta}</span>
         </div>
         <a
           href={candidate.url}
           target="_blank"
           rel="noreferrer"
           aria-label={externalLinkLabel(candidate.source)}
-          className="mt-0.5 shrink-0 text-icon3 hover:text-icon5"
+          className="text-icon3 hover:text-icon5 mt-0.5 shrink-0"
         >
           <ExternalLink size={12} aria-hidden />
         </a>

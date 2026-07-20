@@ -39,13 +39,13 @@ export function SourceControlSection() {
       {serverFactory ? (
         <ConnectRepositoriesPanel factory={serverFactory} />
       ) : (
-        <Txt variant="ui-sm" className="truncate text-icon3">
+        <Txt variant="ui-sm" className="text-icon3 truncate">
           {deriveProjectPath(activeFactory)}
         </Txt>
       )}
 
-      <div className="flex items-center justify-between gap-4 border-t border-border1 pt-4">
-        <div className="min-w-0 flex flex-col">
+      <div className="border-border1 flex items-center justify-between gap-4 border-t pt-4">
+        <div className="flex min-w-0 flex-col">
           <Txt variant="ui-md" className="truncate font-medium">
             Remove {activeFactory.name}
           </Txt>

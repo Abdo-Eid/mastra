@@ -81,7 +81,7 @@ export function SettingsPanel() {
 
   return (
     <section aria-labelledby="settings-title" className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border1 px-5 py-4">
+      <header className="border-border1 flex shrink-0 items-center justify-between gap-3 border-b px-5 py-4">
         <Txt as="h1" variant="header-sm" id="settings-title" tabIndex={-1} ref={titleRef} className="text-icon6">
           Settings
         </Txt>

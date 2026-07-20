@@ -257,7 +257,7 @@ export function WorkspacesSection() {
               <DialogTitle>Delete workspace?</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 px-5 pb-4">
-              <Txt as="p" variant="ui-sm" className="m-0 text-icon4">
+              <Txt as="p" variant="ui-sm" className="text-icon4 m-0">
                 This deletes the <span className="text-icon6">{confirmDelete.branch}</span> checkout, its uncommitted
                 changes, and every thread in this workspace. This can’t be undone.
               </Txt>
@@ -308,7 +308,7 @@ function WorkspaceGroup({
   return (
     <section className="flex flex-col gap-2" aria-label={title}>
       <div className="flex items-center px-1">
-        <Txt as="span" variant="ui-xs" className="text-icon3 uppercase tracking-wide">
+        <Txt as="span" variant="ui-xs" className="text-icon3 tracking-wide uppercase">
           {title}
         </Txt>
       </div>
@@ -327,7 +327,7 @@ function WorkspaceGroup({
           />
         ))}
         {rows.length === 0 && (
-          <Txt as="p" variant="ui-xs" className="m-0 px-2 py-1 text-icon3">
+          <Txt as="p" variant="ui-xs" className="text-icon3 m-0 px-2 py-1">
             {title === 'Review Sessions'
               ? 'Review sessions appear when a PR review starts.'
               : 'Work sessions appear when work starts.'}
@@ -378,14 +378,14 @@ export function WorkspaceRow({
             role="status"
             aria-label={`Agent working in ${name}`}
             title="Agent working"
-            className="ml-auto size-2 shrink-0 animate-pulse rounded-full bg-accent1 group-hover:opacity-0"
+            className="bg-accent1 ml-auto size-2 shrink-0 animate-pulse rounded-full group-hover:opacity-0"
           />
         ) : attention ? (
           <span
             role="status"
             aria-label={`Agent finished in ${name}`}
             title="Agent finished — open to dismiss"
-            className="ml-auto size-2 shrink-0 rounded-full bg-accent1 group-hover:opacity-0"
+            className="bg-accent1 ml-auto size-2 shrink-0 rounded-full group-hover:opacity-0"
           />
         ) : null}
       </button>
@@ -399,7 +399,7 @@ export function WorkspaceRow({
                 size="icon-sm"
                 aria-label="Workspace actions"
                 disabled={disabled}
-                className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 data-[popup-open]:opacity-100"
+                className="absolute top-1/2 right-1 -translate-y-1/2 opacity-0 group-hover:opacity-100 data-[popup-open]:opacity-100"
               >
                 <MoreHorizontal size={15} />
               </Button>

@@ -56,7 +56,7 @@ export function FactoriesPanel({ onClose }: { onClose?: () => void }) {
 
   return (
     <section aria-labelledby="create-factory-title" className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border1 px-5 py-4">
+      <header className="border-border1 flex shrink-0 items-center justify-between gap-3 border-b px-5 py-4">
         <Txt as="h1" variant="header-sm" id="create-factory-title" className="text-icon6">
           Create Factory
         </Txt>
@@ -109,7 +109,7 @@ export function FactoriesPanel({ onClose }: { onClose?: () => void }) {
             </div>
           </form>
 
-          <div className="mt-5 flex min-h-0 flex-1 flex-col border-t border-border1 pt-4">
+          <div className="border-border1 mt-5 flex min-h-0 flex-1 flex-col border-t pt-4">
             <Button
               type="button"
               variant="ghost"
@@ -121,7 +121,7 @@ export function FactoriesPanel({ onClose }: { onClose?: () => void }) {
             </Button>
             {showFolderBrowser && (
               <div className="mt-4 flex min-h-80 flex-1 flex-col gap-3">
-                <Txt as="p" variant="ui-sm" className="max-w-2xl text-icon3">
+                <Txt as="p" variant="ui-sm" className="text-icon3 max-w-2xl">
                   A local Factory binds to a directory on this machine so its threads, memory, and workspace stay scoped
                   there — and are shared with the terminal.
                 </Txt>

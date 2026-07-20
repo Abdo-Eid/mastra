@@ -1,7 +1,13 @@
 import { createContext, useContext, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react';
 
 export type SettingsSection =
-  'general' | 'source-control' | 'model' | 'memory' | 'behavior' | 'providers' | 'custom-providers';
+  | 'general'
+  | 'source-control'
+  | 'model'
+  | 'memory'
+  | 'behavior'
+  | 'providers'
+  | 'custom-providers';
 
 const SettingsSectionContext = createContext<SettingsSection | undefined>(undefined);
 const SettingsSectionDispatchContext = createContext<Dispatch<SetStateAction<SettingsSection>> | undefined>(undefined);

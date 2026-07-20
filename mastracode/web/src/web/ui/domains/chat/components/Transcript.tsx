@@ -128,15 +128,15 @@ function SkillActivationCard({ activation }: { activation: SkillActivation }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <Collapsible open={expanded} onOpenChange={setExpanded} className="min-w-64 max-w-full">
+    <Collapsible open={expanded} onOpenChange={setExpanded} className="max-w-full min-w-64">
       <CollapsibleTrigger
-        className="w-full rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent1"
+        className="focus-visible:ring-accent1 w-full rounded-md text-left focus-visible:ring-2 focus-visible:outline-none"
         aria-label={`${expanded ? 'Hide' : 'Show'} ${activation.name} skill contents`}
       >
         <span className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 text-icon3">
+          <span className="text-icon3 flex items-center gap-1.5">
             <BookOpen size={14} aria-hidden="true" />
-            <Txt as="span" variant="ui-xs" className="uppercase tracking-wide">
+            <Txt as="span" variant="ui-xs" className="tracking-wide uppercase">
               Skill
             </Txt>
           </span>
@@ -146,14 +146,14 @@ function SkillActivationCard({ activation }: { activation: SkillActivation }) {
           <ChevronDown
             size={13}
             aria-hidden="true"
-            className={`ml-auto shrink-0 text-icon3 transition-transform ${expanded ? 'rotate-180' : ''}`}
+            className={`text-icon3 ml-auto shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`}
           />
         </span>
         {activation.arguments && (
-          <span className="mt-1 block truncate text-ui-xs text-icon3">{activation.arguments}</span>
+          <span className="text-ui-xs text-icon3 mt-1 block truncate">{activation.arguments}</span>
         )}
       </CollapsibleTrigger>
-      <CollapsibleContent className="mt-2 max-h-96 overflow-y-auto border-t border-border1 pt-2">
+      <CollapsibleContent className="border-border1 mt-2 max-h-96 overflow-y-auto border-t pt-2">
         <div className="prose text-ui-sm">
           <Markdown>{activation.content}</Markdown>
         </div>
@@ -181,9 +181,9 @@ const STATUS_VARIANT: Record<ToolCall['status'], 'info' | 'success' | 'error'> =
 /** Label + copy header for a section inside a tool card body. */
 function ToolSection({ label, copyText, children }: { label: string; copyText: string; children: ReactNode }) {
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-1">
+    <div className="flex max-w-full min-w-0 flex-col gap-1">
       <div className="flex items-center justify-between gap-2">
-        <Txt as="span" variant="ui-xs" className="text-icon3 uppercase tracking-wide">
+        <Txt as="span" variant="ui-xs" className="text-icon3 tracking-wide uppercase">
           {label}
         </Txt>
         <CopyButton content={copyText} size="sm" variant="ghost" />
@@ -200,24 +200,24 @@ function DiffView({ oldText, newText, path }: { oldText: string; newText: string
   const added = newText.split('\n');
   return (
     <div
-      className="min-w-0 max-w-full overflow-x-auto rounded-xl border border-border1 bg-surface1 font-mono text-xs leading-normal"
+      className="border-border1 bg-surface1 max-w-full min-w-0 overflow-x-auto rounded-xl border font-mono text-xs leading-normal"
       role="group"
       aria-label="File change"
     >
       {removed.map((line, i) => (
-        <div key={`r${i}`} className="flex whitespace-pre bg-error/10">
-          <span className="w-5 shrink-0 select-none text-center text-error opacity-70">-</span>
+        <div key={`r${i}`} className="bg-error/10 flex whitespace-pre">
+          <span className="text-error w-5 shrink-0 text-center opacity-70 select-none">-</span>
           <span
-            className="flex-1 pr-2.5 text-icon6 [&_span]:font-inherit [&_span]:text-inherit [&_span]:leading-inherit dark:[&_span]:![color:var(--shiki-dark)] dark:[&_span]:![background-color:var(--shiki-dark-bg)]"
+            className="text-icon6 [&_span]:font-inherit [&_span]:leading-inherit flex-1 pr-2.5 [&_span]:text-inherit dark:[&_span]:![background-color:var(--shiki-dark-bg)] dark:[&_span]:![color:var(--shiki-dark)]"
             dangerouslySetInnerHTML={{ __html: highlightCode(line, lang) || '&nbsp;' }}
           />
         </div>
       ))}
       {added.map((line, i) => (
-        <div key={`a${i}`} className="flex whitespace-pre bg-accent1/10">
-          <span className="w-5 shrink-0 select-none text-center text-accent1 opacity-70">+</span>
+        <div key={`a${i}`} className="bg-accent1/10 flex whitespace-pre">
+          <span className="text-accent1 w-5 shrink-0 text-center opacity-70 select-none">+</span>
           <span
-            className="flex-1 pr-2.5 text-icon6 [&_span]:font-inherit [&_span]:text-inherit [&_span]:leading-inherit dark:[&_span]:![color:var(--shiki-dark)] dark:[&_span]:![background-color:var(--shiki-dark-bg)]"
+            className="text-icon6 [&_span]:font-inherit [&_span]:leading-inherit flex-1 pr-2.5 [&_span]:text-inherit dark:[&_span]:![background-color:var(--shiki-dark-bg)] dark:[&_span]:![color:var(--shiki-dark)]"
             dangerouslySetInnerHTML={{ __html: highlightCode(line, lang) || '&nbsp;' }}
           />
         </div>
@@ -321,17 +321,17 @@ function ToolCard({
               expanded ? 'rotate-0' : '-rotate-90',
             )}
           />
-          <ToolIcon name={tool.toolName} className="shrink-0 text-icon3" />
+          <ToolIcon name={tool.toolName} className="text-icon3 shrink-0" />
           <Txt as="span" variant="ui-sm" font="mono" className="text-icon5">
             {tool.toolName}
           </Txt>
           {edit?.path && !expanded && (
-            <Txt as="span" variant="ui-xs" font="mono" className="truncate text-icon3">
+            <Txt as="span" variant="ui-xs" font="mono" className="text-icon3 truncate">
               {edit.path}
             </Txt>
           )}
           {!edit && argsPreview && !expanded && (
-            <Txt as="span" variant="ui-xs" font="mono" className="truncate text-icon3">
+            <Txt as="span" variant="ui-xs" font="mono" className="text-icon3 truncate">
               {truncate(argsPreview, 72)}
             </Txt>
           )}
@@ -340,7 +340,7 @@ function ToolCard({
           </Badge>
         </span>
       </CollapsibleTrigger>
-      <CollapsibleContent className="flex min-w-0 max-w-full flex-col gap-2 px-2 pb-2">
+      <CollapsibleContent className="flex max-w-full min-w-0 flex-col gap-2 px-2 pb-2">
         {edit ? (
           edit.new_string !== undefined ? (
             <ToolSection label={edit.path ?? 'Change'} copyText={edit.new_string}>
@@ -359,7 +359,7 @@ function ToolCard({
         ) : null}
         {tool.output && (
           <ToolSection label="Output" copyText={tool.output}>
-            <pre className="m-0 max-h-72 max-w-full overflow-auto whitespace-pre rounded-xl bg-surface1 px-3 py-2 font-mono text-xs leading-normal text-icon3">
+            <pre className="bg-surface1 text-icon3 m-0 max-h-72 max-w-full overflow-auto rounded-xl px-3 py-2 font-mono text-xs leading-normal whitespace-pre">
               {tool.output}
             </pre>
           </ToolSection>
@@ -367,7 +367,7 @@ function ToolCard({
         {resultText !== undefined && <DsCodeBlock code={truncate(resultText, 800)} lang="json" fileName="Result" />}
       </CollapsibleContent>
       {!expanded && tool.output && (
-        <pre className="mx-2 mb-2 max-h-72 max-w-full overflow-auto whitespace-pre rounded-xl bg-surface1 px-3 py-2 font-mono text-xs leading-normal text-icon3 opacity-75">
+        <pre className="bg-surface1 text-icon3 mx-2 mb-2 max-h-72 max-w-full overflow-auto rounded-xl px-3 py-2 font-mono text-xs leading-normal whitespace-pre opacity-75">
           {truncate(tool.output, 180)}
         </pre>
       )}
@@ -391,7 +391,7 @@ function ApprovalCard({
   return (
     <div className={promptCardApproval} role="group" aria-label={`Tool approval for ${prompt.toolName}`}>
       <div className={promptTitle}>
-        Approve <code className="rounded bg-surface5 px-1.5 py-px font-mono text-xs">{prompt.toolName}</code>?
+        Approve <code className="bg-surface5 rounded px-1.5 py-px font-mono text-xs">{prompt.toolName}</code>?
       </div>
       <pre className={resultBlock}>{truncate(stringify(prompt.args), 400)}</pre>
       <div className={promptActions}>
@@ -477,7 +477,7 @@ function SuspensionCard({
       <div className={promptCardSuspension} role="group" aria-label="Plan approval">
         <div className={promptTitle}>Plan: {payload.plan?.title ?? payload.title ?? 'Proposed plan'}</div>
         {payload.plan?.summary && (
-          <div className="whitespace-pre-wrap break-words font-mono text-ui-smd leading-relaxed text-icon5">
+          <div className="text-ui-smd text-icon5 font-mono leading-relaxed break-words whitespace-pre-wrap">
             {payload.plan.summary}
           </div>
         )}
@@ -509,7 +509,7 @@ function SuspensionCard({
     return (
       <div className={promptCardSuspension} role="group" aria-label="Access request">
         <div className={promptTitle}>Grant access to {payload.requestedPath ?? 'a path'}?</div>
-        {payload.reason && <div className="mt-0.5 text-xs text-icon3">Reason: {payload.reason}</div>}
+        {payload.reason && <div className="text-icon3 mt-0.5 text-xs">Reason: {payload.reason}</div>}
         <div className={promptActions}>
           <Button
             variant="primary"
@@ -602,7 +602,7 @@ function AskUserCard({
 
 function SubagentCard({ entry }: { entry: SubagentEntry }) {
   return (
-    <div className="rounded-lg border border-l-4 border-border1 border-l-accent5 bg-surface2 px-3 py-2 shadow-sm">
+    <div className="border-border1 border-l-accent5 bg-surface2 rounded-lg border border-l-4 px-3 py-2 shadow-sm">
       <div className="flex items-center gap-2">
         <Badge variant={entry.done ? 'success' : 'info'}>subagent: {entry.agentType}</Badge>
         <Txt variant="ui-xs" className="text-icon3">
@@ -653,7 +653,7 @@ function NotificationCard({ entry }: { entry: NotificationEntry }) {
   const content = (
     <div
       data-notification-state={presentation.state}
-      className={`rounded-lg border bg-surface2 px-3 py-2 shadow-sm ${presentation.className}`}
+      className={`bg-surface2 rounded-lg border px-3 py-2 shadow-sm ${presentation.className}`}
     >
       <div className="flex items-center gap-2">
         {presentation.icon}
@@ -678,7 +678,7 @@ function NotificationCard({ entry }: { entry: NotificationEntry }) {
 
 function NotificationSummaryCard({ entry }: { entry: NotificationSummaryEntry }) {
   return (
-    <div className="rounded-lg border border-accent3/30 bg-surface2 px-3 py-2 shadow-sm">
+    <div className="border-accent3/30 bg-surface2 rounded-lg border px-3 py-2 shadow-sm">
       <div className="flex items-center gap-2">
         <Bell size={13} />
         <Txt variant="ui-sm" font="mono">
@@ -862,7 +862,7 @@ function MessageBubble({
     User: ({ children }) => (
       <div className="flex w-full flex-col items-end">
         <div
-          className={`max-w-[70%] break-words rounded-xl px-4 py-2 text-text1 ${
+          className={`text-text1 max-w-[70%] rounded-xl px-4 py-2 break-words ${
             entry.steer ? 'bg-warning1/10' : 'bg-surface3'
           }`}
         >
@@ -912,13 +912,13 @@ function MessageBubble({
         <div className={cn('prose', followsToolEntry ? 'mt-4' : followsTool ? 'mt-3' : undefined)}>
           <Markdown>{part.text}</Markdown>
           {entry.streaming && part === lastTextPart && (
-            <span className="ml-0.5 inline-block h-[1em] w-0.5 animate-pulse bg-accent1 align-text-bottom" />
+            <span className="bg-accent1 ml-0.5 inline-block h-[1em] w-0.5 animate-pulse align-text-bottom" />
           )}
         </div>
       );
     },
     Reasoning: (part: ReasoningPart) => (
-      <div className="my-1.5 border-l-2 border-border1 pl-2.5 text-ui-sm italic text-icon3 [&_p]:my-0.5">
+      <div className="border-border1 text-ui-sm text-icon3 my-1.5 border-l-2 pl-2.5 italic [&_p]:my-0.5">
         <Markdown>{part.reasoning}</Markdown>
       </div>
     ),
@@ -975,7 +975,7 @@ function FileAttachment({ part }: { part: FilePart }) {
   if (part.mimeType?.startsWith('image/')) {
     const src = part.data.startsWith('data:') ? part.data : `data:${part.mimeType};base64,${part.data}`;
     return (
-      <img src={src} alt="Attached image" className="my-1.5 max-h-80 max-w-full rounded-md border border-border1" />
+      <img src={src} alt="Attached image" className="border-border1 my-1.5 max-h-80 max-w-full rounded-md border" />
     );
   }
   return <pre className={resultBlock}>{stringify(part)}</pre>;
