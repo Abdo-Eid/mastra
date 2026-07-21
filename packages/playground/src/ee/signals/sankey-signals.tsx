@@ -322,10 +322,20 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
   );
 
   useEffect(() => {
-    if (!isPlaying || snapshots.length < 2 || flowQuery.isFetching || flowQuery.isError) return;
+    const drillInQueryBlocked = drillIn !== undefined && (pathsQuery.isFetching || pathsQuery.isError);
+    if (!isPlaying || snapshots.length < 2 || flowQuery.isFetching || flowQuery.isError || drillInQueryBlocked) return;
     const timer = window.setTimeout(() => setSelectedSnapshotId(nextSnapshotId), 900);
     return () => window.clearTimeout(timer);
-  }, [flowQuery.isError, flowQuery.isFetching, isPlaying, nextSnapshotId, snapshots.length]);
+  }, [
+    drillIn,
+    flowQuery.isError,
+    flowQuery.isFetching,
+    isPlaying,
+    nextSnapshotId,
+    pathsQuery.isError,
+    pathsQuery.isFetching,
+    snapshots.length,
+  ]);
 
   if (snapshotsQuery.isPending) return <SignalsLoadingSkeleton />;
 
@@ -376,11 +386,11 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
   );
   const isNodeClickable = drillInAvailable
     ? (selection: SankeyChartNodeSelection) =>
-        findThemeSelection(unfilteredFlow, selection.column.id, selection.value) !== undefined
+        findThemeSelection(flow, selection.column.id, selection.value) !== undefined
     : undefined;
   const handleNodeClick = drillInAvailable
     ? (selection: SankeyChartNodeSelection) => {
-        const nextSelection = findThemeSelection(unfilteredFlow, selection.column.id, selection.value);
+        const nextSelection = findThemeSelection(flow, selection.column.id, selection.value);
         if (nextSelection) setDrillIn(nextSelection);
       }
     : undefined;
@@ -432,7 +442,7 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
             Drill-in: {formatSignalName(drillIn.signalName)} = &quot;{drillIn.label}&quot;
           </span>
           <Button
-            aria-label={`View ${drillIn.label} theme details`}
+            aria-label={`View theme details for ${drillIn.label}`}
             onClick={() => setDetailSelection(drillIn)}
             size="sm"
             type="button"
@@ -440,13 +450,7 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
           >
             View theme details
           </Button>
-          <Button
-            aria-label="Clear drill-in"
-            onClick={() => setDrillIn(undefined)}
-            size="sm"
-            type="button"
-            variant="ghost"
-          >
+          <Button onClick={() => setDrillIn(undefined)} size="sm" type="button" variant="ghost">
             Clear filter
           </Button>
         </nav>
