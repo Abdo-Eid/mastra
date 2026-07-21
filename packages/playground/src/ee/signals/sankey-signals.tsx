@@ -312,9 +312,7 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
   const nextSnapshotId = snapshots[(selectedSnapshotIndex + 1) % snapshots.length]?.snapshotId;
   const flowQuery = useThemeFlow(entityId, entityType, signalNames, snapshot?.snapshotId);
   const currentFlow = flowQuery.data;
-  const drillInAvailable = Boolean(
-    currentFlow && currentFlow.snapshot.snapshotId === snapshot?.snapshotId && currentFlow.snapshot.traceCount <= 2000,
-  );
+  const drillInAvailable = Boolean(currentFlow && currentFlow.snapshot.traceCount <= 2000);
   const pathsQuery = useThemePaths(
     entityId,
     entityType,
@@ -453,7 +451,12 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
           </Button>
         </nav>
       ) : null}
-      {drillIn && drillInAvailable && pathsQuery.isPending ? (
+      {drillIn && !drillInAvailable ? (
+        <section className="rounded-lg border border-border1 bg-surface2 p-6 text-sm text-neutral3">
+          This drill-in is unavailable for snapshots with more than 2,000 traces. Use the clear filter action above or
+          choose another snapshot.
+        </section>
+      ) : drillIn && pathsQuery.isPending ? (
         <SignalsFrameLoadingSkeleton />
       ) : isDrilledEmpty ? (
         <section className="rounded-lg border border-border1 bg-surface2 p-6 text-sm text-neutral3">
