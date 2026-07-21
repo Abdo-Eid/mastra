@@ -1,17 +1,25 @@
 import { Button } from '@mastra/playground-ui/components/Button';
 import { Card, CardContent, CardFooter, CardHeader } from '@mastra/playground-ui/components/Card';
 import { nodeColor, Sankey, SankeyChart } from '@mastra/playground-ui/components/SankeyChart';
-import type { SankeyChartColumn, SankeyChartRecord } from '@mastra/playground-ui/components/SankeyChart';
+import type {
+  SankeyChartColumn,
+  SankeyChartNodeSelection,
+  SankeyChartRecord,
+} from '@mastra/playground-ui/components/SankeyChart';
 import { Slider } from '@mastra/playground-ui/components/Slider';
 import { getSignalHue, SignalsOverviewPage as SignalsEmptyState } from '@mastra/playground-ui/ee/signals';
 import { Pause, Play } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { useThemeFlow } from './hooks/use-theme-flow';
+import { useThemePaths } from './hooks/use-theme-paths';
 import { useThemeSnapshots } from './hooks/use-theme-snapshots';
 import { buildSignalGraphSummary, getSignalRecordNodeId, getSignalRecordNodeLabel } from './sankey-signals-data';
 import { SignalsErrorState } from './signals-error-state';
 import { SignalsFrameLoadingSkeleton, SignalsLoadingSkeleton } from './signals-loading-skeleton';
+import { ThemeDetailPanel } from './theme-detail-panel';
+import { buildDrilledThemeFlow, findThemeSelection } from './theme-drilldown-data';
+import type { ThemeSelection } from './theme-drilldown-data';
 import type { ThemeFlowResponse, ThemeNode, ThemeSnapshot, TraceSignalName } from './types';
 import { Link } from '@/lib/link';
 
@@ -106,10 +114,12 @@ function SignalDistribution({
   signalName,
   traceCount,
   nodes,
+  onViewThemeDetails,
 }: {
   signalName: TraceSignalName;
   traceCount: number;
   nodes: ThemeNode[];
+  onViewThemeDetails: (selection: ThemeSelection) => void;
 }) {
   const label = formatSignalName(signalName);
   const color = nodeColor(getSignalHue(signalName));
@@ -159,8 +169,22 @@ function SignalDistribution({
                     {node.label}
                   </span>
                 </span>
-                <span className="shrink-0 font-mono text-neutral3">
-                  {node.traceCount} · {Math.round(node.stageShare * 100)}%
+                <span className="flex shrink-0 items-center gap-2">
+                  <span className="font-mono text-neutral3">
+                    {node.traceCount} · {Math.round(node.stageShare * 100)}%
+                  </span>
+                  {node.kind === 'theme' && node.themeId && /^\d+$/.test(node.themeId) && (
+                    <button
+                      type="button"
+                      className="text-neutral3 underline decoration-border2 underline-offset-2 hover:text-neutral5"
+                      aria-label={`View ${node.label} theme details`}
+                      onClick={() =>
+                        onViewThemeDetails({ signalName, themeId: node.themeId as string, label: node.label })
+                      }
+                    >
+                      Details
+                    </button>
+                  )}
                 </span>
               </li>
             ))
@@ -173,7 +197,13 @@ function SignalDistribution({
   );
 }
 
-function SignalDistributions({ stages }: { stages: ThemeFlowResponse['stages'] }) {
+function SignalDistributions({
+  stages,
+  onViewThemeDetails,
+}: {
+  stages: ThemeFlowResponse['stages'];
+  onViewThemeDetails: (selection: ThemeSelection) => void;
+}) {
   return (
     <section aria-label="Signal distributions" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {stages.map(stage => (
@@ -182,6 +212,7 @@ function SignalDistributions({ stages }: { stages: ThemeFlowResponse['stages'] }
           signalName={stage.signalName}
           traceCount={stage.traceCount}
           nodes={stage.nodes}
+          onViewThemeDetails={onViewThemeDetails}
         />
       ))}
     </section>
@@ -193,11 +224,15 @@ function FlowCard({
   records,
   stages,
   height,
+  onNodeClick,
+  drillInDisabledReason,
 }: {
   columns: SankeyChartColumn[];
   records: SankeyChartRecord[];
   stages: ThemeFlowResponse['stages'];
   height?: number;
+  onNodeClick?: (selection: SankeyChartNodeSelection) => void;
+  drillInDisabledReason?: string;
 }) {
   const chartColumns = columns.map(column => {
     const stage = stages.find(currentStage => currentStage.signalName === column.id);
@@ -209,7 +244,13 @@ function FlowCard({
   });
 
   return (
-    <Card aria-label="Signal theme flow" as="section" className="min-w-0 overflow-hidden" elevation="elevated">
+    <Card
+      aria-label="Signal theme flow"
+      as="section"
+      className="min-w-0 overflow-hidden"
+      elevation="elevated"
+      title={drillInDisabledReason}
+    >
       <CardContent className="px-0 py-2 sm:py-3">
         <Sankey
           data={records}
@@ -222,6 +263,7 @@ function FlowCard({
           <SankeyChart
             height={height ?? 'clamp(340px, 42vw, 460px)'}
             margin={{ top: 64, right: 32, bottom: 24, left: 32 }}
+            onNodeClick={onNodeClick}
           />
         </Sankey>
       </CardContent>
@@ -257,6 +299,8 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
   const snapshots = [...(snapshotsQuery.data?.snapshots ?? [])].sort((left, right) => left.ordinal - right.ordinal);
   const [selectedSnapshotId, setSelectedSnapshotId] = useState<string>();
   const [isPlaying, setIsPlaying] = useState(false);
+  const [drillIn, setDrillIn] = useState<ThemeSelection>();
+  const [detailSelection, setDetailSelection] = useState<ThemeSelection>();
   const matchedSnapshotIndex = snapshots.findIndex(snapshot => snapshot.snapshotId === selectedSnapshotId);
   const selectedSnapshotIndex = matchedSnapshotIndex >= 0 ? matchedSnapshotIndex : snapshots.length - 1;
   const snapshot = snapshots[selectedSnapshotIndex];
@@ -264,6 +308,14 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
 
   const nextSnapshotId = snapshots[(selectedSnapshotIndex + 1) % snapshots.length]?.snapshotId;
   const flowQuery = useThemeFlow(entityId, entityType, signalNames, snapshot?.snapshotId);
+  const drillInAvailable = (flowQuery.data?.snapshot.traceCount ?? 0) <= 2000;
+  const pathsQuery = useThemePaths(
+    entityId,
+    entityType,
+    signalNames,
+    snapshot?.snapshotId,
+    drillInAvailable ? drillIn?.themeId : undefined,
+  );
 
   useEffect(() => {
     if (!isPlaying || snapshots.length < 2 || flowQuery.isFetching || flowQuery.isError) return;
@@ -273,13 +325,15 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
 
   if (snapshotsQuery.isPending) return <SignalsLoadingSkeleton />;
 
-  if (snapshotsQuery.isError || flowQuery.isError) {
+  if (snapshotsQuery.isError || flowQuery.isError || pathsQuery.isError) {
     return (
       <SignalsErrorState
         message="Unable to load signal flow."
         onRetry={() => {
           setIsPlaying(false);
-          void Promise.all([snapshotsQuery.refetch(), flowQuery.refetch()]);
+          void snapshotsQuery.refetch();
+          void flowQuery.refetch();
+          if (drillIn && drillInAvailable) void pathsQuery.refetch();
         }}
       />
     );
@@ -302,17 +356,29 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
     );
   }
 
-  const flow = flowQuery.data;
-  const populatedStageCount = flow?.stages.filter(stage => stage.nodes.length > 0).length ?? 0;
+  const unfilteredFlow = flowQuery.data;
+  const populatedStageCount = unfilteredFlow?.stages.filter(stage => stage.nodes.length > 0).length ?? 0;
 
-  if (!flow || populatedStageCount < 2) return <SignalsEmptyState LinkComponent={Link} />;
+  if (!unfilteredFlow || populatedStageCount < 2) return <SignalsEmptyState LinkComponent={Link} />;
 
+  const flow =
+    drillIn && pathsQuery.data ? buildDrilledThemeFlow(unfilteredFlow, pathsQuery.data, drillIn) : unfilteredFlow;
   const graphSummary = buildSignalGraphSummary(flow);
   const stages = flow.stages;
   const themeCount = stages.reduce(
     (total, stage) => total + stage.nodes.filter(node => node.kind === 'theme').length,
     0,
   );
+  const handleNodeClick = drillInAvailable
+    ? (selection: SankeyChartNodeSelection) => {
+        const nextSelection = findThemeSelection(unfilteredFlow, selection.column.id, selection.value);
+        if (nextSelection) setDrillIn(nextSelection);
+      }
+    : undefined;
+  const drillInDisabledReason = drillInAvailable
+    ? undefined
+    : 'Drill-in is unavailable for snapshots with more than 2,000 traces.';
+  const isDrilledEmpty = drillIn !== undefined && pathsQuery.data !== undefined && flow.snapshot.traceCount === 0;
 
   return (
     <main className="min-w-0 space-y-5 p-4 lg:p-6">
@@ -351,8 +417,60 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
         onPlayingChange={setIsPlaying}
         onSnapshotChange={selectSnapshot}
       />
-      <SignalDistributions stages={stages} />
-      <FlowCard columns={graphSummary.columns} records={graphSummary.records} stages={stages} height={height} />
+      {drillIn ? (
+        <nav aria-label="Active theme drill-in" className="flex flex-wrap items-center gap-2 text-sm text-neutral4">
+          <span>
+            Drill-in: {formatSignalName(drillIn.signalName)} = &quot;{drillIn.label}&quot;
+          </span>
+          <Button
+            aria-label={`View ${drillIn.label} theme details`}
+            onClick={() => setDetailSelection(drillIn)}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            View theme details
+          </Button>
+          <Button
+            aria-label="Clear drill-in"
+            onClick={() => setDrillIn(undefined)}
+            size="sm"
+            type="button"
+            variant="ghost"
+          >
+            Clear filter
+          </Button>
+        </nav>
+      ) : null}
+      {drillIn && drillInAvailable && pathsQuery.isPending ? (
+        <SignalsFrameLoadingSkeleton />
+      ) : isDrilledEmpty ? (
+        <section className="rounded-lg border border-border1 bg-surface2 p-6 text-sm text-neutral3">
+          This theme is not present in the selected snapshot. Use the clear filter action above to return to the full
+          flow.
+        </section>
+      ) : (
+        <>
+          <SignalDistributions stages={stages} onViewThemeDetails={setDetailSelection} />
+          <FlowCard
+            columns={graphSummary.columns}
+            records={graphSummary.records}
+            stages={stages}
+            height={height}
+            onNodeClick={handleNodeClick}
+            drillInDisabledReason={drillInDisabledReason}
+          />
+        </>
+      )}
+      <ThemeDetailPanel
+        key={`${detailSelection?.signalName ?? ''}:${detailSelection?.themeId ?? ''}`}
+        entityId={entityId}
+        entityType={entityType}
+        snapshotId={snapshot.snapshotId}
+        snapshotTotal={snapshot.total}
+        selection={detailSelection}
+        onClose={() => setDetailSelection(undefined)}
+      />
     </main>
   );
 }
