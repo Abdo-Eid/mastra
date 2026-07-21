@@ -15,6 +15,7 @@ export type SankeyChartProps = {
   margin?: ComponentProps<typeof RechartsSankey>['margin'];
   onCurveClick?: (selection: SankeyChartCurveSelection) => void;
   onNodeClick?: (selection: SankeyChartNodeSelection) => void;
+  isNodeClickable?: (selection: SankeyChartNodeSelection) => boolean;
 };
 
 export function SankeyChart({
@@ -23,6 +24,7 @@ export function SankeyChart({
   margin = { top: 64, right: 160, bottom: 12, left: 160 },
   onCurveClick,
   onNodeClick,
+  isNodeClickable,
 }: SankeyChartProps) {
   const { graph, enabledColumns, hueMap } = useSankeyRenderContext();
   const [hoveredSourceName, setHoveredSourceName] = useState<string>();
@@ -61,6 +63,10 @@ export function SankeyChart({
                 const showColumnLabel = node
                   ? graph.nodes.findIndex(candidate => candidate.column.id === node.column.id) === props.index
                   : false;
+                const selection = node ? getSankeyChartNodeSelection(node) : undefined;
+                const clickable = Boolean(
+                  onNodeClick && selection && (isNodeClickable === undefined || isNodeClickable(selection)),
+                );
                 return (
                   <SankeyNode
                     {...props}
@@ -73,9 +79,9 @@ export function SankeyChart({
                     isLastColumn={node?.column.id === lastColumnId}
                     onFocusChange={setFocusedSourceName}
                     onHoverChange={setHoveredSourceName}
-                    clickable={onNodeClick !== undefined}
+                    clickable={clickable}
                     onSelect={() => {
-                      if (node) onNodeClick?.(getSankeyChartNodeSelection(node));
+                      if (selection && clickable) onNodeClick?.(selection);
                     }}
                   />
                 );

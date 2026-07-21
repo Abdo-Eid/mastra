@@ -225,6 +225,7 @@ function FlowCard({
   stages,
   height,
   onNodeClick,
+  isNodeClickable,
   drillInDisabledReason,
 }: {
   columns: SankeyChartColumn[];
@@ -232,6 +233,7 @@ function FlowCard({
   stages: ThemeFlowResponse['stages'];
   height?: number;
   onNodeClick?: (selection: SankeyChartNodeSelection) => void;
+  isNodeClickable?: (selection: SankeyChartNodeSelection) => boolean;
   drillInDisabledReason?: string;
 }) {
   const chartColumns = columns.map(column => {
@@ -264,6 +266,7 @@ function FlowCard({
             height={height ?? 'clamp(340px, 42vw, 460px)'}
             margin={{ top: 64, right: 32, bottom: 24, left: 32 }}
             onNodeClick={onNodeClick}
+            isNodeClickable={isNodeClickable}
           />
         </Sankey>
       </CardContent>
@@ -308,7 +311,10 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
 
   const nextSnapshotId = snapshots[(selectedSnapshotIndex + 1) % snapshots.length]?.snapshotId;
   const flowQuery = useThemeFlow(entityId, entityType, signalNames, snapshot?.snapshotId);
-  const drillInAvailable = (flowQuery.data?.snapshot.traceCount ?? 0) <= 2000;
+  const currentFlow = flowQuery.data;
+  const drillInAvailable = Boolean(
+    currentFlow && currentFlow.snapshot.snapshotId === snapshot?.snapshotId && currentFlow.snapshot.traceCount <= 2000,
+  );
   const pathsQuery = useThemePaths(
     entityId,
     entityType,
@@ -335,6 +341,7 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
           void flowQuery.refetch();
           if (drillIn && drillInAvailable) void pathsQuery.refetch();
         }}
+        onClear={pathsQuery.isError ? () => setDrillIn(undefined) : undefined}
       />
     );
   }
@@ -369,6 +376,10 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
     (total, stage) => total + stage.nodes.filter(node => node.kind === 'theme').length,
     0,
   );
+  const isNodeClickable = drillInAvailable
+    ? (selection: SankeyChartNodeSelection) =>
+        findThemeSelection(unfilteredFlow, selection.column.id, selection.value) !== undefined
+    : undefined;
   const handleNodeClick = drillInAvailable
     ? (selection: SankeyChartNodeSelection) => {
         const nextSelection = findThemeSelection(unfilteredFlow, selection.column.id, selection.value);
@@ -458,12 +469,13 @@ export function SankeySignals({ entityId, entityType = 'agent', signalNames, hei
             stages={stages}
             height={height}
             onNodeClick={handleNodeClick}
+            isNodeClickable={isNodeClickable}
             drillInDisabledReason={drillInDisabledReason}
           />
         </>
       )}
       <ThemeDetailPanel
-        key={`${detailSelection?.signalName ?? ''}:${detailSelection?.themeId ?? ''}`}
+        key={`${snapshot.snapshotId}:${detailSelection?.signalName ?? ''}:${detailSelection?.themeId ?? ''}`}
         entityId={entityId}
         entityType={entityType}
         snapshotId={snapshot.snapshotId}
