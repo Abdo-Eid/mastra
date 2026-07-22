@@ -27,14 +27,14 @@ export interface WorkItemStageEntry {
 }
 
 export interface WorkItemSessionRef {
-  projectPath: string;
+  sessionId: string;
   branch: string;
   threadId: string;
   startedBy: string;
 }
 
 export interface WorkItemSessionInput {
-  projectPath: string;
+  sessionId: string;
   branch: string;
   threadId: string;
 }

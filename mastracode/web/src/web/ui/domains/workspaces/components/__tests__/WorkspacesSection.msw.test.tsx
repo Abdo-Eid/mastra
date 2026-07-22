@@ -108,7 +108,7 @@ const relatedWorkItems: WorkItem[] = [
     stageHistory: [],
     sessions: {
       work: {
-        projectPath: '/sandbox/mastra-worktrees/feat-ui',
+        sessionId: '/sandbox/mastra-worktrees/feat-ui',
         branch: 'feat-ui',
         threadId: 'thread-work',
         startedBy: 'user-1',
@@ -132,7 +132,7 @@ const relatedWorkItems: WorkItem[] = [
     stageHistory: [],
     sessions: {
       review: {
-        projectPath: '/sandbox/mastra-worktrees/feat-api',
+        sessionId: '/sandbox/mastra-worktrees/feat-api',
         branch: 'feat-api',
         threadId: 'thread-review',
         startedBy: 'user-1',
@@ -313,7 +313,7 @@ describe('WorkspacesSection', () => {
         stageHistory: [],
         sessions: {
           [review ? 'review' : 'work']: {
-            projectPath: worktree.worktreePath,
+            sessionId: worktree.worktreePath,
             branch: worktree.branch,
             threadId: `thread-${index}`,
             startedBy: 'user-1',
@@ -713,13 +713,9 @@ describe('WorkspacesSection', () => {
         deletedThreads.push(String(params.threadId));
         return HttpResponse.json({ ok: true });
       }),
-      http.post(`${ORIGIN}/web/github/projects/${PROJECT_REPOSITORY_ID}/worktree/delete`, async ({ request }) => {
-        deletedBranch = ((await request.json()) as { branch: string }).branch;
-        return HttpResponse.json({
-          removed: true,
-          branch: 'feat-ui',
-          worktreePath: '/sandbox/mastra-worktrees/feat-ui',
-        });
+      http.delete(`${ORIGIN}/web/user-sessions/${encodeURIComponent('/sandbox/mastra-worktrees/feat-ui')}`, () => {
+        deletedBranch = 'feat-ui';
+        return HttpResponse.json({ removed: true });
       }),
     );
     renderSection();
@@ -749,13 +745,9 @@ describe('WorkspacesSection', () => {
     useAgentControllerHandlers();
     let deleteCalled = false;
     server.use(
-      http.post(`${ORIGIN}/web/github/projects/${PROJECT_REPOSITORY_ID}/worktree/delete`, () => {
+      http.delete(`${ORIGIN}/web/user-sessions/${encodeURIComponent('/sandbox/mastra-worktrees/feat-ui')}`, () => {
         deleteCalled = true;
-        return HttpResponse.json({
-          removed: true,
-          branch: 'feat-ui',
-          worktreePath: '/sandbox/mastra-worktrees/feat-ui',
-        });
+        return HttpResponse.json({ removed: true });
       }),
     );
     renderSection();

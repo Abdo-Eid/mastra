@@ -145,7 +145,7 @@ async function auditWorkItemPatch({
           role,
           branch: session?.branch,
           threadId: session?.threadId,
-          projectPath: session?.projectPath,
+          sessionId: session?.sessionId,
         },
       },
     });

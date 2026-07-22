@@ -164,7 +164,7 @@ describe('POST /web/factory/projects/:id/work-items', () => {
       `/web/factory/projects/${PROJECT_ID}/work-items`,
       createBody({
         stages: ['execute'],
-        sessions: { work: { projectPath: '/sb/wt/issue-42', branch: 'factory/issue-42', threadId: 't-1' } },
+        sessions: { work: { sessionId: '/sb/wt/issue-42', branch: 'factory/issue-42', threadId: 't-1' } },
       }),
     );
     const { workItem } = await res.json();
@@ -177,7 +177,7 @@ describe('POST /web/factory/projects/:id/work-items', () => {
     ]);
     // Session got the acting user stamped server-side.
     expect(workItem.sessions.work).toMatchObject({
-      projectPath: '/sb/wt/issue-42',
+      sessionId: '/sb/wt/issue-42',
       branch: 'factory/issue-42',
       threadId: 't-1',
       startedBy: 'u1',
@@ -238,11 +238,11 @@ describe('PATCH /web/factory/work-items/:id', () => {
 
   it('merges sessions and metadata instead of replacing', async () => {
     const item = await createItem({
-      sessions: { work: { projectPath: '/sb/wt/a', branch: 'b-a', threadId: 't-a' } },
+      sessions: { work: { sessionId: '/sb/wt/a', branch: 'b-a', threadId: 't-a' } },
       metadata: { number: 42, labels: ['bug'] },
     });
     const res = await json('PATCH', `/web/factory/work-items/${item.id}`, {
-      sessions: { review: { projectPath: '/sb/wt/r', branch: 'b-r', threadId: 't-r' } },
+      sessions: { review: { sessionId: '/sb/wt/r', branch: 'b-r', threadId: 't-r' } },
       metadata: { prNumber: 7 },
     });
     const { workItem } = await res.json();
@@ -258,10 +258,10 @@ describe('PATCH /web/factory/work-items/:id', () => {
     // write would silently drop the other role.
     const [workRes, reviewRes] = await Promise.all([
       json('PATCH', `/web/factory/work-items/${item.id}`, {
-        sessions: { work: { projectPath: '/sb/wt/a', branch: 'b-a', threadId: 't-a' } },
+        sessions: { work: { sessionId: '/sb/wt/a', branch: 'b-a', threadId: 't-a' } },
       }),
       json('PATCH', `/web/factory/work-items/${item.id}`, {
-        sessions: { review: { projectPath: '/sb/wt/r', branch: 'b-r', threadId: 't-r' } },
+        sessions: { review: { sessionId: '/sb/wt/r', branch: 'b-r', threadId: 't-r' } },
       }),
     ]);
     expect(workRes.status).toBe(200);
@@ -523,7 +523,7 @@ describe('audit events', () => {
     const item = await createItem();
     auditRecorded = [];
 
-    const session = { projectPath: '/sb/wt/issue-42', branch: 'factory/issue-42', threadId: 't-1' };
+    const session = { sessionId: '/sb/wt/issue-42', branch: 'factory/issue-42', threadId: 't-1' };
     await json(
       'POST',
       `/web/factory/projects/${PROJECT_ID}/work-items`,
@@ -559,14 +559,14 @@ describe('audit events', () => {
     const item = await createItem();
     auditRecorded = [];
 
-    const session = { projectPath: '/sb/wt/issue-42', branch: 'factory/issue-42', threadId: 't-1' };
+    const session = { sessionId: '/sb/wt/issue-42', branch: 'factory/issue-42', threadId: 't-1' };
     await json('PATCH', `/web/factory/work-items/${item.id}`, { sessions: { work: session } });
     expect(auditRecorded.map(e => e.action)).toEqual(['factory.work_item.updated', 'factory.run.started']);
     expect(auditRecorded[1].metadata).toEqual({
       role: 'work',
       branch: 'factory/issue-42',
       threadId: 't-1',
-      projectPath: '/sb/wt/issue-42',
+      sessionId: '/sb/wt/issue-42',
     });
 
     // Re-filing the same role is not a new run.
@@ -637,9 +637,9 @@ describe('parseCreateWorkItem', () => {
   });
 
   it('rejects malformed sessions', () => {
-    expect(parseCreateWorkItem(createBody({ sessions: { work: { projectPath: '/p' } } }))).toBeNull();
+    expect(parseCreateWorkItem(createBody({ sessions: { work: { sessionId: '/p' } } }))).toBeNull();
     expect(
-      parseCreateWorkItem(createBody({ sessions: { '': { projectPath: '/p', branch: 'b', threadId: 't' } } })),
+      parseCreateWorkItem(createBody({ sessions: { '': { sessionId: '/p', branch: 'b', threadId: 't' } } })),
     ).toBeNull();
   });
 });

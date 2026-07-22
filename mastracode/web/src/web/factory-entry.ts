@@ -31,7 +31,7 @@ import { observeAgentGitAction } from './audit/agent-audit.js';
 import { AuditDomain } from './audit/domain.js';
 import { buildAuthRoutes, createWebAuthGate, isWebAuthEnabled } from './auth.js';
 import type { FactoryIntegration, IntegrationPostToolContext, IntegrationTools } from './factory-integration.js';
-import { getFactoryWorkspace } from './factory/workspace.js';
+import { createWorkspaceFactory } from './factory/workspace.js';
 import { ProjectDomain } from './projects/domain.js';
 import type { WorkspaceSandbox } from '@mastra/core/workspace';
 import { seedRuntimeConfig } from './runtime-config.js';
@@ -430,7 +430,7 @@ export class MastraFactory {
     // one shared database for all users, separated by `resourceId` scoping.
     const prepared = await prepareAgentControllerMount({
       controllerId: CONTROLLER_ID,
-      workspace: getFactoryWorkspace,
+      workspace: createWorkspaceFactory(this.#config.sandbox),
       disableGithubSignals: true,
       storage: storage.getMastraStorage(),
       ...(vector ? { vector } : {}),

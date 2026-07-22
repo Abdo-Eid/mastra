@@ -32,7 +32,7 @@ describe('Factory work item relationships', () => {
       source: 'github-issue',
       sessions: {
         work: {
-          projectPath: '/worktrees/factory-issue-24',
+          sessionId: '/worktrees/factory-issue-24',
           branch: 'factory/issue-24',
           threadId: 'thread-issue-24',
           startedBy: 'user-1',
@@ -57,7 +57,7 @@ describe('Factory work item relationships', () => {
       source: 'github-issue',
       sessions: {
         work: {
-          projectPath: '/worktrees/factory-shared',
+          sessionId: '/worktrees/factory-shared',
           branch: 'factory/shared',
           threadId: 'thread-shared',
           startedBy: 'user-1',
@@ -81,7 +81,7 @@ describe('Factory work item relationships', () => {
       source: 'github-issue',
       sessions: {
         work: {
-          projectPath: '/worktrees/factory-issue-24',
+          sessionId: '/worktrees/factory-issue-24',
           branch: 'factory/issue-24',
           threadId: 'thread-issue-24',
           startedBy: 'user-1',

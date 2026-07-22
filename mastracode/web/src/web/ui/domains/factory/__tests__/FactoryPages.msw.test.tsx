@@ -26,10 +26,31 @@ import type { CreateWorkItemInput, UpdateWorkItemInput, WorkItem } from '../serv
 
 const API = `${TEST_BASE_URL}/api/agent-controller/code`;
 const RESOURCE_ID = 'resource-gh';
-const SESSION = `${API}/sessions/${RESOURCE_ID}`;
+const SESSION = `${API}/sessions/:resourceId`;
 const THREAD_ID = 'thread-test';
 const FACTORY_PROJECT_ID = 'fp-github-project-1';
 const PROJECT_REPOSITORY_ID = 'repo-link-1';
+
+function sessionResponse(branch: string, sessionId = `session-${branch.replaceAll('/', '-')}`) {
+  return {
+    session: {
+      id: `stored-${sessionId}`,
+      sessionId,
+      projectRepositoryId: PROJECT_REPOSITORY_ID,
+      orgId: 'org-1',
+      userId: 'user-1',
+      branch,
+      baseBranch: 'main',
+      sandboxId: null,
+      sandboxWorkdir: null,
+      materializedAt: null,
+      createdAt: '2026-07-22T00:00:00.000Z',
+      updatedAt: '2026-07-22T00:00:00.000Z',
+    },
+  };
+}
+
+const storedFactorySessions = new Map<string, ReturnType<typeof sessionResponse>['session']>();
 
 const githubRepository = {
   projectRepositoryId: PROJECT_REPOSITORY_ID,
@@ -188,25 +209,33 @@ function useAppHandlers(githubStatus: GithubStatus, options: AppHandlerOptions =
     http.get(`${TEST_BASE_URL}/web/linear/status`, () =>
       HttpResponse.json(options.linearStatus ?? linearDisabledStatus),
     ),
+    http.get(`${TEST_BASE_URL}/web/github/projects/:projectRepositoryId/sessions`, () =>
+      HttpResponse.json({ sessions: [] }),
+    ),
+    http.get(`${TEST_BASE_URL}/web/user-sessions/:sessionId`, ({ params }) => {
+      const session = storedFactorySessions.get(String(params.sessionId));
+      return session
+        ? HttpResponse.json({ session })
+        : HttpResponse.json({ error: 'Session not found' }, { status: 404 });
+    }),
+    http.get(`${TEST_BASE_URL}/web/workspace/rendered/list`, () =>
+      HttpResponse.json({ rootPath: '/tmp/mastracode-test', renderedPath: '.artifacts', entries: [] }),
+    ),
     http.post(`${API}/sessions`, async ({ request }) => {
-      const body = (await request.json()) as { sessionScope?: string };
-      if (body.sessionScope && options.sessionThreadId) {
-        boundThreadId = body.sessionScope.includes('factory-pr-34') ? 'thread-related-review' : THREAD_ID;
-      } else if (body.sessionScope) {
-        boundThreadId = 'thread-factory';
-      }
-      return HttpResponse.json({ controllerId: 'code', resourceId: RESOURCE_ID, threadId: boundThreadId });
+      const body = (await request.json()) as { resourceId: string; threadId?: string };
+      if (body.threadId) boundThreadId = body.threadId;
+      return HttpResponse.json({ controllerId: 'code', resourceId: body.resourceId, threadId: boundThreadId });
     }),
     http.get(`${API}/modes`, () => HttpResponse.json({ modes: [{ id: 'build', label: 'Build' }] })),
     http.get(`${API}/models`, () => HttpResponse.json({ models: [] })),
     http.get(SESSION, () => HttpResponse.json(sessionState(boundThreadId))),
     http.put(`${SESSION}/state`, () => HttpResponse.json(sessionState(boundThreadId))),
     http.get(`${SESSION}/permissions`, () => HttpResponse.json({ categories: {}, tools: {} })),
-    http.get(`${SESSION}/threads`, ({ request }) => {
-      const scoped = new URL(request.url).searchParams.has('sessionScope');
+    http.get(`${SESSION}/threads`, ({ params }) => {
+      const resourceId = params.resourceId as string;
       return HttpResponse.json({
         threads: [
-          ...(scoped ? [{ id: 'thread-factory', resourceId: RESOURCE_ID, title: 'Untitled thread' }] : []),
+          ...(resourceId !== RESOURCE_ID ? [{ id: resourceId, resourceId, title: 'Untitled thread' }] : []),
           { id: THREAD_ID, resourceId: RESOURCE_ID, title: 'Existing thread' },
           { id: 'thread-work', resourceId: RESOURCE_ID, title: 'Worker thread' },
           { id: 'thread-related-review', resourceId: RESOURCE_ID, title: 'Related review thread' },
@@ -517,7 +546,7 @@ describe('Factory Work and Review intake candidates', () => {
           sourceKey: 'github-issue:12',
           sessions: {
             work: {
-              projectPath: '/sandbox/mastra/worktrees/factory-issue-12',
+              sessionId: '/sandbox/mastra/worktrees/factory-issue-12',
               branch: 'factory/issue-12',
               threadId: 'thread-work',
               startedBy: 'user-1',
@@ -873,7 +902,7 @@ describe('Factory Board — persisted cards', () => {
           stages: ['review'],
           sessions: {
             work: {
-              projectPath: '/sandbox/mastra/worktrees/factory-issue-12',
+              sessionId: '/sandbox/mastra/worktrees/factory-issue-12',
               branch: 'factory/issue-12',
               threadId: 'thread-work',
               startedBy: 'user-1',
@@ -888,7 +917,7 @@ describe('Factory Board — persisted cards', () => {
           stages: ['review'],
           sessions: {
             review: {
-              projectPath: '/sandbox/mastra/worktrees/factory-pr-34',
+              sessionId: '/sandbox/mastra/worktrees/factory-pr-34',
               branch: 'factory/pr-34',
               threadId: 'thread-review',
               startedBy: 'user-1',
@@ -964,7 +993,7 @@ describe('Factory Board — persisted cards', () => {
     },
   };
   const issueWorkSession = {
-    projectPath: issueWorktreePath,
+    sessionId: issueWorktreePath,
     branch: 'factory/issue-12',
     threadId: 'thread-work',
     startedBy: 'user-1',
@@ -989,7 +1018,7 @@ describe('Factory Board — persisted cards', () => {
       metadata: { number: 34, headBranch: 'factory/issue-12' },
       sessions: {
         review: {
-          projectPath: reviewWorktreePath,
+          sessionId: reviewWorktreePath,
           branch: 'factory/pr-34',
           threadId: 'thread-related-review',
           startedBy: 'user-1',
@@ -1262,7 +1291,7 @@ describe('Factory Board — persisted cards', () => {
     // message — record those endpoints without registering the run handlers.
     const sideEffects: string[] = [];
     server.use(
-      http.post(`${TEST_BASE_URL}/web/github/projects/${PROJECT_REPOSITORY_ID}/worktree`, () => {
+      http.post(`${TEST_BASE_URL}/web/github/projects/${PROJECT_REPOSITORY_ID}/sessions`, () => {
         sideEffects.push('worktree');
         return HttpResponse.json({}, { status: 500 });
       }),
@@ -1322,7 +1351,7 @@ describe('Factory Board — persisted cards', () => {
     await userEvent.click(within(column('triage')).getByRole('button', { name: 'Actions for Fix flaky test' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Investigate' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/threads/thread-factory'));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`));
     expect(captured.worktree).toMatchObject({ branch: 'factory/issue-12' });
     await waitFor(() => expect(state.patches).toMatchObject([{ id: 'wi-1', stages: ['planning'] }]));
   });
@@ -1348,7 +1377,7 @@ describe('Factory Board — persisted cards', () => {
     await userEvent.click(within(column('triage')).getByRole('button', { name: 'Actions for Add OAuth support' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Prepare approval' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/threads/thread-factory'));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`));
     expect(captured.worktree).toMatchObject({ branch: 'factory/issue-21' });
     await waitFor(() =>
       expect(captured.messages[0]!.message).toContain(
@@ -1361,7 +1390,7 @@ describe('Factory Board — persisted cards', () => {
         {
           id: 'wi-approval',
           stages: ['triage'],
-          sessions: { triage: { branch: 'factory/issue-21', threadId: 'thread-factory' } },
+          sessions: { triage: { branch: 'factory/issue-21', threadId: captured.sessionId } },
         },
       ]),
     );
@@ -1421,15 +1450,10 @@ describe('Factory Board — persisted cards', () => {
       markWorktreeRequested = resolve;
     });
     server.use(
-      http.post(`${TEST_BASE_URL}/web/github/projects/${PROJECT_REPOSITORY_ID}/worktree`, async () => {
+      http.post(`${TEST_BASE_URL}/web/github/projects/${PROJECT_REPOSITORY_ID}/sessions`, async () => {
         markWorktreeRequested();
         await worktreeBlocked;
-        return HttpResponse.json({
-          worktreePath: '/sandbox/mastra/worktrees/factory-issue-12',
-          branch: 'factory/issue-12',
-          baseBranch: 'main',
-          resourceId: RESOURCE_ID,
-        });
+        return HttpResponse.json(sessionResponse('factory/issue-12', 'factory-issue-12'));
       }),
     );
     renderAt('/factory/board');
@@ -1493,17 +1517,12 @@ describe('Factory Board — persisted cards', () => {
     });
     let requestCount = 0;
     server.use(
-      http.post(`${TEST_BASE_URL}/web/github/projects/${PROJECT_REPOSITORY_ID}/worktree`, async () => {
+      http.post(`${TEST_BASE_URL}/web/github/projects/${PROJECT_REPOSITORY_ID}/sessions`, async () => {
         requestCount += 1;
         if (requestCount === 1) {
           markFirstRequested();
           await firstBlocked;
-          return HttpResponse.json({
-            worktreePath: '/sandbox/mastra/worktrees/factory-issue-12',
-            branch: 'factory/issue-12',
-            baseBranch: 'main',
-            resourceId: RESOURCE_ID,
-          });
+          return HttpResponse.json(sessionResponse('factory/issue-12', 'factory-issue-12'));
         }
         markSecondRequested();
         await secondBlocked;
@@ -1566,16 +1585,11 @@ describe('Factory Board — persisted cards', () => {
       markBothRequested = resolve;
     });
     server.use(
-      http.post(`${TEST_BASE_URL}/web/github/projects/${PROJECT_REPOSITORY_ID}/worktree`, async () => {
+      http.post(`${TEST_BASE_URL}/web/github/projects/${PROJECT_REPOSITORY_ID}/sessions`, async () => {
         requestCount += 1;
         if (requestCount === 2) markBothRequested();
         await worktreesBlocked;
-        return HttpResponse.json({
-          worktreePath: '/sandbox/mastra/worktrees/factory-issue-12',
-          branch: 'factory/issue-12',
-          baseBranch: 'main',
-          resourceId: RESOURCE_ID,
-        });
+        return HttpResponse.json(sessionResponse('factory/issue-12', 'factory-issue-12'));
       }),
     );
     renderAt('/factory/board');
@@ -1618,7 +1632,7 @@ describe('Factory Board — persisted cards', () => {
     await userEvent.click(within(column('planning')).getByRole('button', { name: 'Actions for Fix flaky test' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Build' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/threads/thread-factory'));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`));
     expect(captured.worktree).toMatchObject({ branch: 'factory/issue-12' });
     await waitFor(() => expect(captured.messages[0]!.message).toContain('Implement a fix for GitHub issue #12'));
     await waitFor(() => expect(state.patches).toMatchObject([{ id: 'wi-1', stages: ['execute'] }]));
@@ -1752,24 +1766,26 @@ describe('Factory Board — drag and drop', () => {
 });
 
 interface CapturedRun {
+  sessionId: string;
   worktree?: Record<string, unknown>;
   threadTitles: string[];
   messages: Record<string, unknown>[];
   skillInvocations: Record<string, unknown>[];
 }
 
-/** Registers handlers for the investigate flow: worktree + thread + message. */
+/** Registers handlers for the investigate flow: session + thread + message. */
 function useFactoryRunHandlers(branchDir: string): CapturedRun {
-  const captured: CapturedRun = { threadTitles: [], messages: [], skillInvocations: [] };
+  const captured: CapturedRun = { sessionId: branchDir, threadTitles: [], messages: [], skillInvocations: [] };
+  let createdSession: ReturnType<typeof sessionResponse>['session'] | undefined;
   server.use(
-    http.post(`${TEST_BASE_URL}/web/github/projects/${PROJECT_REPOSITORY_ID}/worktree`, async ({ request }) => {
+    http.get(`${TEST_BASE_URL}/web/github/projects/${PROJECT_REPOSITORY_ID}/sessions`, () =>
+      HttpResponse.json({ sessions: createdSession ? [createdSession] : [] }),
+    ),
+    http.post(`${TEST_BASE_URL}/web/github/projects/${PROJECT_REPOSITORY_ID}/sessions`, async ({ request }) => {
       captured.worktree = (await request.json()) as Record<string, unknown>;
-      return HttpResponse.json({
-        worktreePath: `/sandbox/mastra/worktrees/${branchDir}`,
-        branch: captured.worktree.branch,
-        baseBranch: 'main',
-        resourceId: RESOURCE_ID,
-      });
+      createdSession = sessionResponse(captured.worktree.branch as string, branchDir).session;
+      storedFactorySessions.set(createdSession.sessionId, createdSession);
+      return HttpResponse.json({ session: createdSession });
     }),
     http.post(`${SESSION}/threads`, async ({ request }) => {
       const body = (await request.json()) as { title?: string };
@@ -1810,15 +1826,10 @@ describe('Factory Board — investigate flow', () => {
       markWorktreeRequested = resolve;
     });
     server.use(
-      http.post(`${TEST_BASE_URL}/web/github/projects/${PROJECT_REPOSITORY_ID}/worktree`, async () => {
+      http.post(`${TEST_BASE_URL}/web/github/projects/${PROJECT_REPOSITORY_ID}/sessions`, async () => {
         markWorktreeRequested();
         await worktreeBlocked;
-        return HttpResponse.json({
-          worktreePath: '/sandbox/mastra/worktrees/factory-issue-12',
-          branch: 'factory/issue-12',
-          baseBranch: 'main',
-          resourceId: RESOURCE_ID,
-        });
+        return HttpResponse.json(sessionResponse('factory/issue-12', 'factory-issue-12'));
       }),
     );
     renderAt('/factory/board');
@@ -1847,20 +1858,19 @@ describe('Factory Board — investigate flow', () => {
     await within(intake).findByText('Fix flaky test');
     await userEvent.click(within(intake).getByRole('button', { name: 'Investigate Fix flaky test' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/threads/thread-factory'));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`));
     expect(captured.worktree).toMatchObject({ branch: 'factory/issue-12' });
     expect(captured.threadTitles).toEqual(['Issue #12: Fix flaky test']);
     await waitFor(() => expect(captured.messages).toHaveLength(1));
     expect(captured.messages[0]?.message).toContain('<skill name="understand-issue">');
     expect(captured.skillInvocations).toEqual([
       {
-        resourceId: RESOURCE_ID,
-        scope: '/sandbox/mastra/worktrees/factory-issue-12',
+        resourceId: captured.sessionId,
         name: 'understand-issue',
         arguments:
           'GitHub issue #12 (https://github.com/mastra-ai/mastra/issues/12)\n\n' +
           'Prepared workspace context:\n' +
-          '- Worktree: /sandbox/mastra/worktrees/factory-issue-12\n' +
+          `- Session: ${captured.sessionId}\n` +
           '- Branch: factory/issue-12',
       },
     ]);
@@ -1875,9 +1885,9 @@ describe('Factory Board — investigate flow', () => {
         stages: ['planning'],
         sessions: {
           plan: {
-            projectPath: '/sandbox/mastra/worktrees/factory-issue-12',
+            sessionId: captured.sessionId,
             branch: 'factory/issue-12',
-            threadId: 'thread-factory',
+            threadId: captured.sessionId,
           },
         },
       },
@@ -1910,7 +1920,7 @@ describe('Factory Board — investigate flow', () => {
 
       expect(await screen.findByRole('button', { name: /Show understand-issue skill contents/ })).toBeInTheDocument();
       await waitFor(() => expect(captured.messages).toHaveLength(1));
-      expect(pathWhenDispatched).toBe('/threads/thread-factory');
+      expect(pathWhenDispatched).toBe(`/threads/${captured.sessionId}`);
       expect(captured.skillInvocations).toHaveLength(1);
       expect(captured.messages[0]?.message).toContain('<skill name="understand-issue">');
       expect(state.posts).toHaveLength(0);
@@ -2001,7 +2011,7 @@ describe('Factory Board — investigate flow', () => {
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Build' }));
 
     await promptRequested;
-    expect(router.state.location.pathname).toBe('/threads/thread-factory');
+    expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`);
     releasePrompt();
     await waitFor(() => expect(state.posts).toHaveLength(1));
     expect(captured.worktree).toMatchObject({ branch: 'factory/issue-12' });
@@ -2012,7 +2022,7 @@ describe('Factory Board — investigate flow', () => {
         source: 'github-issue',
         sourceKey: 'github-issue:12',
         stages: ['execute'],
-        sessions: { work: { branch: 'factory/issue-12', threadId: 'thread-factory' } },
+        sessions: { work: { branch: 'factory/issue-12', threadId: captured.sessionId } },
       },
     ]);
   });
@@ -2035,7 +2045,7 @@ describe('Factory Board — investigate flow', () => {
       await userEvent.click(within(intake).getByRole('button', { name: 'Investigate Fix flaky test' }));
 
       // Filing is best-effort: the user still lands on the running thread.
-      await waitFor(() => expect(router.state.location.pathname).toBe('/threads/thread-factory'));
+      await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`));
       expect(captured.skillInvocations).toHaveLength(1);
       await waitFor(() =>
         expect(errorSpy).toHaveBeenCalledWith('Failed to file the board card for this run', expect.anything()),
@@ -2054,21 +2064,20 @@ describe('Factory Board — investigate flow', () => {
     await within(intake).findByText('Add factory pages');
     await userEvent.click(within(intake).getByRole('button', { name: 'Review Add factory pages' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/threads/thread-factory'));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`));
     expect(captured.worktree).toMatchObject({ branch: 'factory/pr-34' });
     expect(captured.threadTitles).toEqual(['PR #34: Add factory pages']);
     await waitFor(() => expect(captured.messages).toHaveLength(1));
     expect(captured.messages[0]?.message).toContain('<skill name="understand-pr">');
     expect(captured.skillInvocations).toEqual([
       {
-        resourceId: RESOURCE_ID,
-        scope: '/sandbox/mastra/worktrees/factory-pr-34',
+        resourceId: captured.sessionId,
         name: 'understand-pr',
         arguments:
           'GitHub pull request #34 (https://github.com/mastra-ai/mastra/pull/34)\n\n' +
           'Check out the PR in this worktree first with `gh pr checkout 34`. Expected head branch: feat/factory.\n\n' +
           'Prepared workspace context:\n' +
-          '- Worktree: /sandbox/mastra/worktrees/factory-pr-34\n' +
+          `- Session: ${captured.sessionId}\n` +
           '- Branch: factory/pr-34',
       },
     ]);
@@ -2079,7 +2088,7 @@ describe('Factory Board — investigate flow', () => {
           source: 'github-pr',
           sourceKey: 'github-pr:34',
           stages: ['review'],
-          sessions: { review: { branch: 'factory/pr-34', threadId: 'thread-factory' } },
+          sessions: { review: { branch: 'factory/pr-34', threadId: captured.sessionId } },
         },
       ]),
     );
@@ -2098,7 +2107,7 @@ describe('Factory Board — investigate flow', () => {
     await within(intake).findByText('Fix intake sync');
     await userEvent.click(within(intake).getByRole('button', { name: 'Investigate Fix intake sync' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/threads/thread-factory'));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`));
     expect(captured.worktree).toMatchObject({ branch: 'factory/linear-eng-42' });
     await waitFor(() => expect(captured.messages).toHaveLength(1));
     expect(captured.messages[0]?.message).toContain('<skill name="understand-issue">');
@@ -2128,7 +2137,7 @@ describe('Factory Board — investigate flow', () => {
     );
     await userEvent.click(within(form).getByRole('button', { name: 'Run' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/threads/thread-factory'));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`));
     await waitFor(() => expect(captured.messages).toHaveLength(1));
     // The base issue context survives; the typed text guides the run instead
     // of the explicit skill directive.
@@ -2161,7 +2170,7 @@ describe('Factory Board — investigate flow', () => {
     await userEvent.click(within(column('intake')).getByRole('button', { name: 'Actions for Fix flaky test' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Investigate' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/threads/thread-factory'));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`));
     expect(captured.worktree).toMatchObject({ branch: 'factory/issue-12' });
     await waitFor(() => expect(captured.messages).toHaveLength(1));
     expect(captured.messages[0]?.message).toContain('<skill name="understand-issue">');
@@ -2176,7 +2185,7 @@ describe('Factory Board — investigate flow', () => {
       {
         id: 'wi-1',
         stages: ['planning'],
-        sessions: { plan: { branch: 'factory/issue-12', threadId: 'thread-factory' } },
+        sessions: { plan: { branch: 'factory/issue-12', threadId: captured.sessionId } },
       },
     ]);
   });
@@ -2195,7 +2204,7 @@ describe('Factory Board — investigate flow', () => {
           // Legacy ref from before scoping was fixed: dead worktree, own thread.
           sessions: {
             plan: {
-              projectPath: '/gone/worktree',
+              sessionId: '/gone/worktree',
               branch: 'factory/issue-12',
               threadId: 'thread-legacy-plan',
               startedBy: 'user-1',
@@ -2211,7 +2220,7 @@ describe('Factory Board — investigate flow', () => {
     await userEvent.click(within(column('planning')).getByRole('button', { name: 'Actions for Fix flaky test' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Build' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/threads/thread-factory'));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`));
     expect(captured.worktree).toMatchObject({ branch: 'factory/issue-12' });
     // One thread per item: every role ref converges onto the run's thread.
     await waitFor(() =>
@@ -2220,8 +2229,8 @@ describe('Factory Board — investigate flow', () => {
           id: 'wi-1',
           stages: ['execute'],
           sessions: {
-            plan: { branch: 'factory/issue-12', threadId: 'thread-factory' },
-            work: { branch: 'factory/issue-12', threadId: 'thread-factory' },
+            plan: { branch: 'factory/issue-12', threadId: captured.sessionId },
+            work: { branch: 'factory/issue-12', threadId: captured.sessionId },
           },
         },
       ]),
@@ -2244,18 +2253,16 @@ describe('Factory Board — investigate flow', () => {
     });
     const captured = useFactoryRunHandlers('factory-pr-34');
     const { router } = renderAt('/factory/review');
-    // The worktree session resumes a real (titled) thread from a previous run.
+    // The Factory session resumes its real (titled) thread from a previous run.
     // Registered after renderAt so it takes precedence over the default empty
     // thread list from useAppHandlers (MSW resolves newest-first).
     server.use(
-      http.post(`${API}/sessions`, () =>
-        HttpResponse.json({ controllerId: 'code', resourceId: RESOURCE_ID, threadId: THREAD_ID }),
-      ),
-      http.get(`${SESSION}/threads`, () =>
-        HttpResponse.json({
-          threads: [{ id: THREAD_ID, resourceId: RESOURCE_ID, title: 'PR #34: Add factory pages' }],
-        }),
-      ),
+      http.get(`${SESSION}/threads`, ({ params }) => {
+        const resourceId = String(params.resourceId);
+        return HttpResponse.json({
+          threads: [{ id: resourceId, resourceId, title: 'PR #34: Add factory pages' }],
+        });
+      }),
       http.post(`${SESSION}/thread`, () => HttpResponse.json({ ok: true })),
     );
 
@@ -2263,7 +2270,7 @@ describe('Factory Board — investigate flow', () => {
     await userEvent.click(within(column('review')).getByRole('button', { name: 'Actions for Add factory pages' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Review' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${THREAD_ID}`));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`));
     // No new thread was created — the resumed thread carried the follow-up run.
     expect(captured.threadTitles).toEqual([]);
     await waitFor(() => expect(captured.messages).toHaveLength(1));
@@ -2280,7 +2287,7 @@ describe('Factory Board — investigate flow', () => {
         {
           id: 'wi-pr',
           stages: ['review'],
-          sessions: { review: { branch: 'factory/pr-34', threadId: THREAD_ID } },
+          sessions: { review: { branch: 'factory/pr-34', threadId: captured.sessionId } },
         },
       ]),
     );
@@ -2289,7 +2296,7 @@ describe('Factory Board — investigate flow', () => {
   it('given the worktree call fails, when Investigate is clicked, then an error notice renders and no work item is filed', async () => {
     const state = useBoardHandlers({ issues });
     server.use(
-      http.post(`${TEST_BASE_URL}/web/github/projects/${PROJECT_REPOSITORY_ID}/worktree`, () =>
+      http.post(`${TEST_BASE_URL}/web/github/projects/${PROJECT_REPOSITORY_ID}/sessions`, () =>
         HttpResponse.json({ error: 'git_error', message: 'worktree failed' }, { status: 502 }),
       ),
     );
@@ -2346,7 +2353,7 @@ describe('Factory Board — open session from the card title', () => {
     const card = within(column('intake')).getByTestId('work-item-card');
     await userEvent.click(within(card).getByRole('button', { name: 'Issue: Fix flaky test' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/threads/thread-factory'));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`));
     expect(captured.worktree).toMatchObject({ branch: 'factory/issue-12' });
     expect(captured.threadTitles).toEqual(['Issue #12: Fix flaky test']);
     // No agent run: nothing was sent to the session.
@@ -2356,7 +2363,7 @@ describe('Factory Board — open session from the card title', () => {
       {
         id: 'wi-1',
         stages: ['intake'],
-        sessions: { chat: { branch: 'factory/issue-12', threadId: 'thread-factory' } },
+        sessions: { chat: { branch: 'factory/issue-12', threadId: captured.sessionId } },
       },
     ]);
   });
@@ -2375,7 +2382,7 @@ describe('Factory Board — open session from the card title', () => {
           // gone, so the run slot is open again.
           sessions: {
             work: {
-              projectPath: '/sandbox/mastra/worktrees/gone',
+              sessionId: '/sandbox/mastra/worktrees/gone',
               branch: 'factory/issue-12',
               threadId: 'thread-old',
               startedBy: 'user-1',
@@ -2391,13 +2398,13 @@ describe('Factory Board — open session from the card title', () => {
     const card = within(column('execute')).getByTestId('work-item-card');
     await userEvent.click(within(card).getByRole('button', { name: 'Issue: Fix flaky test' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/threads/thread-factory'));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`));
     expect(captured.messages).toEqual([]);
     // The fresh thread is filed under chat only — repointing the stale `work`
     // role would make it look live and hide Investigate/Build again.
     expect(state.patches).toHaveLength(1);
     expect(state.patches[0].sessions).toEqual({
-      chat: expect.objectContaining({ branch: 'factory/issue-12', threadId: 'thread-factory' }),
+      chat: expect.objectContaining({ branch: 'factory/issue-12', threadId: captured.sessionId }),
     });
   });
 
@@ -2410,7 +2417,7 @@ describe('Factory Board — open session from the card title', () => {
     await within(intake).findByText('Fix flaky test');
     await userEvent.click(within(intake).getByRole('button', { name: 'Issue: Fix flaky test' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/threads/thread-factory'));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`));
     expect(captured.worktree).toMatchObject({ branch: 'factory/issue-12' });
     expect(captured.messages).toEqual([]);
     expect(state.posts).toMatchObject([
@@ -2421,7 +2428,7 @@ describe('Factory Board — open session from the card title', () => {
         url: 'https://github.com/mastra-ai/mastra/issues/12',
         stages: ['intake'],
         metadata: { number: 12 },
-        sessions: { chat: { branch: 'factory/issue-12', threadId: 'thread-factory' } },
+        sessions: { chat: { branch: 'factory/issue-12', threadId: captured.sessionId } },
       },
     ]);
   });
@@ -2437,7 +2444,7 @@ describe('Factory Board — open session from the card title', () => {
     const card = within(column('intake')).getByTestId('work-item-card');
     await userEvent.click(within(card).getByRole('button', { name: 'Manual: Manual card' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/threads/thread-factory'));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/threads/${captured.sessionId}`));
     expect(captured.worktree).toMatchObject({ branch: 'factory/item-wi-manual' });
     expect(captured.threadTitles).toEqual(['Manual card']);
     expect(captured.messages).toEqual([]);
@@ -2458,7 +2465,7 @@ describe('Factory Board — open session from the card title', () => {
           metadata: { number: 12 },
           sessions: {
             chat: {
-              projectPath: issueWorktreePath,
+              sessionId: issueWorktreePath,
               branch: 'factory/issue-12',
               threadId: 'thread-work',
               startedBy: 'user-1',
