@@ -1,5 +1,14 @@
 # @mastra/tanstack-start
 
+## 0.2.7-alpha.11
+
+### Patch Changes
+
+- Updated dependencies [[`9251370`](https://github.com/mastra-ai/mastra/commit/9251370ad413af464aa22d7566338bec5613e8de)]:
+  - @mastra/core@1.52.0-alpha.11
+  - @mastra/server@1.52.0-alpha.11
+  - @mastra/hono@1.5.8-alpha.11
+
 ## 0.2.7-alpha.10
 
 ### Patch Changes

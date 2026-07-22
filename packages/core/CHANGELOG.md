@@ -1,5 +1,11 @@
 # @mastra/core
 
+## 1.52.0-alpha.11
+
+### Minor Changes
+
+- Added an optional `threadId` parameter to AgentController session creation so hosts can create or resume a session bound to an exact thread ID. ([#19758](https://github.com/mastra-ai/mastra/pull/19758))
+
 ## 1.52.0-alpha.10
 
 ### Minor Changes
