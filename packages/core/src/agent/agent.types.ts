@@ -143,6 +143,19 @@ export interface DelegationStartResult {
    * Not applied when resuming an existing sub-agent thread.
    */
   threadMetadata?: Record<string, unknown>;
+  /**
+   * Thread ID to reuse for this delegated run (optional).
+   * When a non-empty string is returned, the sub-agent runs on that thread
+   * instead of a freshly minted one, and thread-scoped message history is loaded
+   * using the instance default instead of being forced off with `lastMessages: false`.
+   */
+  modifiedSubAgentThreadId?: string;
+  /**
+   * Memory options to apply to the delegated run (optional).
+   * Spread last over the delegation defaults so you can still disable
+   * `lastMessages` on a reused thread, or enable title generation.
+   */
+  modifiedMemoryOptions?: AgentMemoryOption['options'];
 }
 
 /**
