@@ -4,7 +4,7 @@ import type { AgentBackgroundConfig } from '../../../background-tasks/types';
 import type { SystemMessage } from '../../../llm';
 import type { ToolCallConcurrency } from '../../../loop/types';
 import { createRunScope } from '../../../mastra/run-scope';
-import type { MastraMemory } from '../../../memory/memory';
+import type { IMastraMemory } from '../../../memory/memory';
 import type { MemoryConfigInternal, StorageThreadType } from '../../../memory/types';
 import type { Span, SpanType } from '../../../observability';
 import { InternalSpans } from '../../../observability';
@@ -36,7 +36,7 @@ interface CreatePrepareStreamWorkflowOptions<OUTPUT = undefined> {
   /** MCP server guidance to include as a separate system message. */
   mcpServerGuidance?: string;
   memoryConfig?: MemoryConfigInternal;
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   returnScorerData?: boolean;
   saveQueueManager?: SaveQueueManager;
   requireToolApproval?: RequireToolApproval;

@@ -10,7 +10,7 @@ import { ErrorCategory, ErrorDomain, MastraError } from './error';
 import type { MastraLanguageModel, MastraLegacyLanguageModel } from './llm/model/shared.types';
 import type { IMastraLogger } from './logger';
 import type { Mastra } from './mastra';
-import type { AiMessageType, MastraMemory } from './memory';
+import type { AiMessageType, IMastraMemory } from './memory';
 import type { ObservabilityContext, TracingPolicy } from './observability';
 import type { RequestContext } from './request-context';
 import type { CoreTool, VercelTool, VercelToolV5 } from './tools';
@@ -272,7 +272,7 @@ export interface ToolOptions extends Partial<ObservabilityContext> {
   mastra?: (Mastra & MastraPrimitives) | MastraPrimitives;
   requestContext: RequestContext;
   tracingPolicy?: TracingPolicy;
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   agentName?: string;
   agentId?: string;
   model?: MastraLanguageModel | MastraLegacyLanguageModel;

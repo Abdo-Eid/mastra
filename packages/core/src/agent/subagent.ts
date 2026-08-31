@@ -1,7 +1,7 @@
 import type { Mastra } from '..';
 import type { AgentBackgroundConfig } from '../background-tasks';
 import type { MastraLegacyLanguageModel } from '../llm/model/shared.types';
-import type { MastraLanguageModel, MastraMemory } from '../memory';
+import type { MastraLanguageModel, IMastraMemory } from '../memory';
 import type { RequestContext } from '../request-context';
 import type { ChunkType, FullOutput, MastraModelOutput } from '../stream';
 import type { DynamicArgument } from '../types';
@@ -60,10 +60,10 @@ export interface SubAgent<TId = string, TRequestContext extends Record<string, a
   hasOwnMemory(): boolean;
 
   /** Inject parent memory into this subagent when it does not have its own */
-  __setMemory(memory: DynamicArgument<MastraMemory, TRequestContext>): void;
+  __setMemory(memory: DynamicArgument<IMastraMemory, TRequestContext>): void;
 
   /** Returns the memory instance, if configured */
-  getMemory(opts?: { requestContext?: RequestContext }): Promise<MastraMemory | undefined> | MastraMemory | undefined;
+  getMemory(opts?: { requestContext?: RequestContext }): Promise<IMastraMemory | undefined> | IMastraMemory | undefined;
 
   /** Returns the system prompt / instructions */
   getInstructions(opts?: { requestContext?: RequestContext }): AgentInstructions | Promise<AgentInstructions>;

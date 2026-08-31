@@ -2,7 +2,7 @@ import { APICallError } from '@internal/ai-sdk-v5';
 import { MastraError, ErrorDomain, ErrorCategory } from '../../../error';
 import { getModelMethodFromAgentMethod } from '../../../llm/model/model-method-from-agent';
 import type { ModelLoopStreamArgs, ModelMethodType } from '../../../llm/model/model.loop.types';
-import type { MastraMemory } from '../../../memory/memory';
+import type { IMastraMemory } from '../../../memory/memory';
 import type { MemoryConfigInternal } from '../../../memory/types';
 import { createObservabilityContext } from '../../../observability';
 import type { Span, SpanType } from '../../../observability';
@@ -33,7 +33,7 @@ interface MapResultsStepOptions<OUTPUT = undefined> {
   threadId?: string;
   runId: string;
   requestContext: RequestContext;
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   memoryConfig?: MemoryConfigInternal;
   agentSpan?: Span<SpanType.AGENT_RUN>;
   agentId: string;

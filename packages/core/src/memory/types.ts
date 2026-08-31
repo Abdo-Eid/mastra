@@ -8,7 +8,7 @@ import type { ModelRouterModelId } from '../llm/model/provider-registry.js';
 import type { MastraLanguageModel, MastraModelConfig } from '../llm/model/shared.types';
 import type { RequestContext } from '../request-context';
 import type { PublicSchema } from '../schema';
-import type { MastraCompositeStore } from '../storage';
+import type { IMastraCompositeStore } from '../storage';
 import type { DynamicArgument } from '../types';
 import type { MastraEmbeddingModel, MastraEmbeddingOptions, MastraVector } from '../vector';
 import type { VectorFilter } from '../vector/filter/base';
@@ -1162,7 +1162,7 @@ export type SharedMemoryConfig = {
    * storage: new LibSQLStore({ id: 'agent-memory-storage', url: "file:./agent-memory.db" })
    * ```
    */
-  storage?: MastraCompositeStore;
+  storage?: IMastraCompositeStore;
 
   /**
    * Configuration for memory behaviors including conversation history, semantic recall,

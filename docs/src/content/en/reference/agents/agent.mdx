@@ -897,9 +897,10 @@ SystemMessage types: string | string[] | CoreSystemMessage | CoreSystemMessage[]
   },
   {
     name: 'memory',
-    type: 'MastraMemory | ({ requestContext: RequestContext }) => MastraMemory | Promise<MastraMemory>',
+    type: 'IMastraMemory | ({ requestContext: RequestContext }) => IMastraMemory | Promise<IMastraMemory>',
     isOptional: true,
-    description: 'Memory module used for storing and retrieving stateful context.',
+    description:
+      'Memory module used for storing and retrieving stateful context. Accepts the structural IMastraMemory contract, so Memory instances from @mastra/memory type-check across package boundaries.',
   },
   {
     name: 'notifications',

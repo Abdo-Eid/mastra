@@ -1,7 +1,7 @@
 import type { JournalEntry, LLMock } from '@copilotkit/aimock';
 import type { AgentConfig, ToolsInput } from '../../../agent';
 import type { PubSub } from '../../../events/pubsub';
-import type { MastraMemory } from '../../../memory';
+import type { IMastraMemory } from '../../../memory';
 import type { RequestContext } from '../../../request-context';
 import type { MastraModelOutput } from '../../../stream/base/output';
 import type { ChunkType } from '../../../stream/types';
@@ -308,7 +308,7 @@ export interface RunLoopScenarioOptions {
    * Memory instance attached to the agent. Combine with `threadId`/`resourceId`
    * to exercise conversation-history recall and working memory across turns.
    */
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   /** Thread id for memory-backed runs. Forwarded to `agent.stream({ memory: { thread } })`. */
   threadId?: string;
   /** Resource id for memory-backed runs. Forwarded to `agent.stream({ memory: { resource } })`. */

@@ -36,7 +36,7 @@ import type { IMastraLogger } from '../logger';
 import type { ReasoningLevel } from '../loop/types';
 import type { Mastra } from '../mastra';
 import type { VersionOverrides } from '../mastra/types';
-import type { MastraMemory } from '../memory/memory';
+import type { IMastraMemory } from '../memory/memory';
 import type { MemoryConfigInternal, StorageThreadType } from '../memory/types';
 import type { NotificationDeliveryPolicyConfig } from '../notifications/delivery-policy';
 import type {
@@ -746,7 +746,7 @@ interface AgentConfigBase<
   /**
    * Memory module used for storing and retrieving stateful context.
    */
-  memory?: DynamicArgument<MastraMemory, TRequestContext>;
+  memory?: DynamicArgument<IMastraMemory, TRequestContext>;
   /**
    * Skills that guide agent behavior — reusable instructions the model loads on demand.
    *

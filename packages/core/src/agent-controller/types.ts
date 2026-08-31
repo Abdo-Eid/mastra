@@ -6,10 +6,10 @@ import type { AgentControllerChannelsConfig } from '../channels/agent-controller
 import type { PubSub } from '../events/pubsub';
 import type { MastraModelGatewayInterface } from '../llm/model/gateways';
 import type { LoopOptions } from '../loop/types';
-import type { MastraMemory } from '../memory/memory';
+import type { IMastraMemory } from '../memory/memory';
 import type { ObservabilityEntrypoint } from '../observability/types/core';
 import type { PublicSchema } from '../schema';
-import type { MastraCompositeStore } from '../storage/base';
+import type { IMastraCompositeStore } from '../storage/base';
 import type { GoalEvaluationPayload } from '../stream/types';
 import type { DynamicArgument } from '../types';
 import type { Workspace, WorkspaceStatus } from '../workspace';
@@ -251,7 +251,7 @@ export interface AgentControllerConfig<TState = {}> {
   resourceId?: string;
 
   /** Storage backend for persistence (threads, messages, state) */
-  storage?: MastraCompositeStore;
+  storage?: IMastraCompositeStore;
 
   /** Schema defining the shape of controller state (Zod, JSON Schema, Standard Schema, etc.) */
   stateSchema?: PublicSchema<TState, any>;
@@ -260,7 +260,7 @@ export interface AgentControllerConfig<TState = {}> {
   initialState?: Partial<TState>;
 
   /** Memory configuration (shared across all modes) */
-  memory?: DynamicArgument<MastraMemory>;
+  memory?: DynamicArgument<IMastraMemory>;
 
   /** Available agent modes */
   modes: AgentControllerMode[];

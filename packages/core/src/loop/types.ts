@@ -22,7 +22,7 @@ import type { ModelMethodType } from '../llm/model/model.loop.types';
 import type { MastraLanguageModelV2, OpenAICompatibleConfig, SharedProviderOptions } from '../llm/model/shared.types';
 import type { IMastraLogger } from '../logger';
 import type { Mastra } from '../mastra';
-import type { MastraMemory, MemoryConfigInternal } from '../memory';
+import type { IMastraMemory, MemoryConfigInternal } from '../memory';
 import type { IModelSpanTracker, ObservabilityContext } from '../observability';
 import type {
   ErrorProcessorOrWorkflow,
@@ -117,7 +117,7 @@ export type StreamInternal = {
   /** @deprecated Use `runScope.get(RESOURCE_ID_KEY)` from `loop/run-scope-keys`. */
   resourceId?: string;
   /** @deprecated Use `runScope.get(MEMORY_KEY)` from `loop/run-scope-keys`. */
-  memory?: MastraMemory; // MastraMemory from memory/memory
+  memory?: IMastraMemory; // IMastraMemory from memory/memory
   /** @deprecated Use `runScope.get(THREAD_EXISTS_KEY)` from `loop/run-scope-keys`. */
   threadExists?: boolean;
   // Tools modified by prepareStep/processInputStep - stored here to avoid workflow serialization

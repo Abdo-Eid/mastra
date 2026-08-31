@@ -4,7 +4,7 @@ import type { AgentBackgroundConfig } from '../../../background-tasks/types';
 import { getModelMethodFromAgentMethod } from '../../../llm/model/model-method-from-agent';
 import type { ModelLoopStreamArgs, ModelMethodType } from '../../../llm/model/model.loop.types';
 import type { ToolCallConcurrency } from '../../../loop/types';
-import type { MastraMemory } from '../../../memory/memory';
+import type { IMastraMemory } from '../../../memory/memory';
 import type { MemoryConfigInternal } from '../../../memory/types';
 import { resolveObservabilityContext } from '../../../observability';
 import { RequestContext } from '../../../request-context';
@@ -36,7 +36,7 @@ interface StreamStepOptions<OUTPUT = undefined> {
   methodType: AgentMethodType;
   saveQueueManager?: SaveQueueManager;
   memoryConfig?: MemoryConfigInternal;
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   resourceId?: string;
   autoResumeSuspendedTools?: boolean;
   workspace?: Workspace;

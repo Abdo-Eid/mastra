@@ -9,7 +9,7 @@ import { resolveModelConfig } from '../llm/model/resolve-model';
 import type { MastraModelConfig } from '../llm/model/shared.types';
 import { noopLogger } from '../logger';
 import type { Mastra } from '../mastra';
-import type { MastraMemory } from '../memory/memory';
+import type { IMastraMemory } from '../memory/memory';
 import {
   createObservabilityContext,
   EntityType,
@@ -88,7 +88,7 @@ export interface ScorerJudgeConfig {
   /** Optional tools the judge agent may call while evaluating (e.g. readonly verification tools). */
   tools?: ToolsInput;
   /** Optional memory instance for the internal judge agent. */
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   /** Default memory options passed to the internal judge agent run. */
   defaultMemoryOptions?: AgentMemoryOption;
   /** Optional callback for observing the internal judge agent stream as soon as it starts. */

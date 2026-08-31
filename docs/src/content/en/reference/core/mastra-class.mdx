@@ -77,7 +77,7 @@ Visit the [Configuration reference](/reference/configuration) for detailed docum
   },
   {
     name: 'storage',
-    type: 'MastraCompositeStore',
+    type: 'IMastraCompositeStore',
     description: 'Storage engine instance for persisting data',
     isOptional: true,
   },
@@ -190,7 +190,7 @@ Visit the [Configuration reference](/reference/configuration) for detailed docum
   },
   {
     name: 'memory',
-    type: 'Record<string, MastraMemory>',
+    type: 'Record<string, IMastraMemory>',
     description:
       'Memory instances to register. These can be referenced by stored agents and resolved at runtime. Structured as a key-value pair, with keys being the registry key and values being memory instances.',
     isOptional: true,

@@ -3,7 +3,7 @@ import { resolveModelConfig } from '../../../llm/model/resolve-model';
 import type { MastraLanguageModel } from '../../../llm/model/shared.types';
 import type { StreamInternal } from '../../../loop/types';
 import type { Mastra } from '../../../mastra';
-import type { MastraMemory } from '../../../memory/memory';
+import type { IMastraMemory } from '../../../memory/memory';
 import type {
   ProcessorState,
   ErrorProcessorOrWorkflow,
@@ -45,7 +45,7 @@ export interface ResolvedRuntimeDependencies {
   /** Deserialized MessageList */
   messageList: MessageList;
   /** Memory instance (if available) */
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   /** SaveQueueManager for message persistence */
   saveQueueManager?: SaveQueueManager;
   /** Workspace for file/sandbox operations */
@@ -67,7 +67,7 @@ export interface ResolvedRuntimeDependencies {
  * is configured. Shared by `resolveRuntimeDependencies` and
  * `rebuildRunToolsFromMastra` so the construction lives in one place.
  */
-function makeSaveQueueManager(memory: MastraMemory | undefined, mastra?: Mastra): SaveQueueManager | undefined {
+function makeSaveQueueManager(memory: IMastraMemory | undefined, mastra?: Mastra): SaveQueueManager | undefined {
   if (!memory) return undefined;
   return new SaveQueueManager({ logger: mastra?.getLogger?.(), memory });
 }
@@ -197,7 +197,7 @@ export async function resolveRuntimeDependencies(options: ResolveRuntimeOptions)
   let model: MastraLanguageModel = globalEntry?.model as MastraLanguageModel;
   let modelList: RegistryModelListEntry[] | undefined = globalEntry?.modelList;
   let workspace: Workspace | undefined = globalEntry?.workspace;
-  let memory: MastraMemory | undefined = globalEntry?.memory;
+  let memory: IMastraMemory | undefined = globalEntry?.memory;
   let inputProcessors: InputProcessorOrWorkflow[] | undefined = globalEntry?.inputProcessors;
   let llmRequestInputProcessors: InputProcessorOrWorkflow[] | undefined = globalEntry?.llmRequestInputProcessors;
   let outputProcessors: OutputProcessorOrWorkflow[] | undefined = globalEntry?.outputProcessors;
@@ -347,7 +347,7 @@ export async function resolveRuntimeDependencies(options: ResolveRuntimeOptions)
 export interface RebuiltRunTools {
   tools: Record<string, CoreTool>;
   workspace?: Workspace;
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   saveQueueManager?: SaveQueueManager;
 }
 
@@ -472,7 +472,7 @@ export function resolveModel(config: SerializableModelConfig, _mastra?: Mastra):
  */
 export function resolveInternalState(options: {
   state: SerializableDurableState;
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   saveQueueManager?: SaveQueueManager;
   tools?: Record<string, CoreTool>;
 }): StreamInternal {

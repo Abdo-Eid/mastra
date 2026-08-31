@@ -11,7 +11,7 @@
  * - Optional `postPipeInner` hooks for durable-specific cleanup/abort tracking
  */
 import type { BackgroundTaskManager } from '../../background-tasks/manager';
-import type { MastraMemory } from '../../memory/memory';
+import type { IMastraMemory } from '../../memory/memory';
 import { MASTRA_RESOURCE_ID_KEY, MASTRA_THREAD_ID_KEY, RequestContext } from '../../request-context';
 import { deepMerge } from '../../utils';
 
@@ -49,7 +49,7 @@ export interface ResolvedScope {
  * falls through to a plain stream in that case.
  */
 export async function resolveScope(
-  agent: { getMemory: (opts?: any) => Promise<MastraMemory | undefined> },
+  agent: { getMemory: (opts?: any) => Promise<IMastraMemory | undefined> },
   mergedOptions: Record<string, any>,
 ): Promise<ResolvedScope | null> {
   const requestContext = (mergedOptions?.requestContext as RequestContext | undefined) ?? new RequestContext();
@@ -258,7 +258,7 @@ export async function runIdleLoop<
   TAgent extends {
     id: string;
     getDefaultOptions: (opts?: any) => any | Promise<any>;
-    getMemory: (opts?: any) => Promise<MastraMemory | undefined>;
+    getMemory: (opts?: any) => Promise<IMastraMemory | undefined>;
   },
   TFirstResult extends { fullStream: any },
   TReturn,

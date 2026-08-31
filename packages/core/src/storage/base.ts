@@ -1,4 +1,5 @@
 import { MastraBase } from '../base';
+import type { IMastraLogger } from '../logger';
 
 import type {
   AgentsStorage,
@@ -339,7 +340,36 @@ function isClosable(value: unknown): value is Closable {
   return typeof value === 'object' && value !== null && typeof (value as Closable).close === 'function';
 }
 
-export class MastraCompositeStore extends MastraBase {
+/**
+ * Structural public surface of a `MastraCompositeStore`.
+ *
+ * Store packages (e.g. `@mastra/pg`) bundle their own copy of the
+ * `MastraCompositeStore`/`MastraBase` declarations, so store class types
+ * cannot be compared nominally across package boundaries — `#private`/
+ * `protected` members would make otherwise identical copies mutually
+ * unassignable. Positions that accept user-supplied stores (e.g. Memory
+ * `storage`, `new Mastra({ storage })`) accept this interface instead of
+ * the class.
+ *
+ * Note: methods intentionally use method syntax (not property syntax) so
+ * they are checked bivariantly.
+ */
+export interface IMastraCompositeStore {
+  id: string;
+  name?: string;
+  stores?: StorageDomains;
+  disableInit: boolean;
+  getStore<K extends keyof StorageDomains>(storeName: K): Promise<StorageDomains[K] | undefined>;
+  prune(options?: PruneOptions): Promise<PruneResult[]>;
+  init(): Promise<void>;
+  close(): Promise<void>;
+  __registerMastra(mastra: StorageMastraRef, seen?: Set<unknown>): void;
+  __setLogger(logger: IMastraLogger): void;
+  __setRawConfig(rawConfig: Record<string, unknown>): void;
+  toRawConfig(): Record<string, unknown> | undefined;
+}
+
+export class MastraCompositeStore extends MastraBase implements IMastraCompositeStore {
   protected hasInitialized: null | Promise<boolean> = null;
   protected shouldCacheInit = true;
 

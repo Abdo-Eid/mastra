@@ -11,7 +11,7 @@ import { isSupportedLanguageModel, supportedLanguageModelSpecifications } from '
 import { MastraError } from '../error';
 import { resolveModelConfig } from '../llm';
 import type { IMastraLogger } from '../logger';
-import type { MastraMemory } from '../memory/memory';
+import type { IMastraMemory } from '../memory/memory';
 import { parseMemoryRequestContext } from '../memory/types';
 import {
   EntityType,
@@ -369,7 +369,7 @@ export class ProcessorRunner {
     writer?: ProcessorStreamWriter;
     abort: (reason?: string, options?: TripWireOptions) => never;
     processorState: ProcessorState;
-    memory?: MastraMemory;
+    memory?: IMastraMemory;
     resourceId?: string;
     threadId?: string;
     abortSignal?: AbortSignal;
@@ -499,7 +499,7 @@ export class ProcessorRunner {
     steps: Array<StepResult<any>>;
     requestContext?: RequestContext;
     writer?: ProcessorStreamWriter;
-    memory?: MastraMemory;
+    memory?: IMastraMemory;
     resourceId?: string;
     threadId?: string;
     abortSignal?: AbortSignal;

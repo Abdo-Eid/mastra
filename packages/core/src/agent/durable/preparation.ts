@@ -2,7 +2,7 @@ import type { AgentBackgroundConfig } from '../../background-tasks/types';
 import type { MastraLanguageModel } from '../../llm/model/shared.types';
 import type { IMastraLogger } from '../../logger';
 import type { Mastra } from '../../mastra';
-import type { MastraMemory } from '../../memory/memory';
+import type { IMastraMemory } from '../../memory/memory';
 import type { MemoryConfig, MemoryConfig as _MemoryConfig, StorageThreadType } from '../../memory/types';
 import { EntityType, SpanType, createObservabilityContext, getOrCreateSpan } from '../../observability';
 import type { InputProcessorOrWorkflow, OutputProcessorOrWorkflow, ErrorProcessorOrWorkflow } from '../../processors';
@@ -122,7 +122,7 @@ interface DurablePreparationAgent {
   getInstructions(opts: { requestContext: RequestContext }): AgentInstructions | Promise<AgentInstructions>;
   getModel(opts: { requestContext: RequestContext }): MastraLanguageModel | Promise<MastraLanguageModel>;
   getModelList(requestContext: RequestContext): Promise<AgentModelManagerConfig[] | null>;
-  getMemory(opts: { requestContext: RequestContext }): Promise<MastraMemory | undefined>;
+  getMemory(opts: { requestContext: RequestContext }): Promise<IMastraMemory | undefined>;
   getWorkspace(opts: { requestContext: RequestContext }): Promise<Workspace | undefined>;
   listScorers(opts: {
     requestContext: RequestContext;

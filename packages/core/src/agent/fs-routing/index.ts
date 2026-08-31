@@ -1,6 +1,6 @@
 import { MastraError, ErrorDomain, ErrorCategory } from '../../error';
 import type { MastraScorer, MastraScorerEntry, MastraScorers } from '../../evals';
-import type { MastraMemory } from '../../memory/memory';
+import type { IMastraMemory } from '../../memory/memory';
 import type { InputProcessorOrWorkflow, OutputProcessorOrWorkflow } from '../../processors';
 import { assertValidScheduleDefinition } from '../../schedules/define';
 import type { AgentScheduleDefinition, DeclaredAgentSchedule } from '../../schedules/define';
@@ -132,11 +132,11 @@ export interface FsAgentEntry {
    */
   workspace?: AnyWorkspace;
   /**
-   * Default export of `agents/<name>/memory.ts`, if present. A `MastraMemory`
+   * Default export of `agents/<name>/memory.ts`, if present. A `IMastraMemory`
    * instance wired into the assembled agent as its `memory`. `config.memory`
    * (from `config.ts`) takes precedence on conflict.
    */
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   /**
    * Base path for the convention default workspace. When provided and neither
    * `config.workspace` nor `workspace.ts` supplies one, an FS agent gets a
@@ -825,7 +825,7 @@ function mergeScorers(
  */
 function mergeMemory(
   name: string,
-  fsMemory: MastraMemory | undefined,
+  fsMemory: IMastraMemory | undefined,
   configMemory: FsAgentConfig['memory'],
   onWarn: (message: string) => void,
 ): FsAgentConfig['memory'] | undefined {

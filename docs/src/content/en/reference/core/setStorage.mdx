@@ -1,13 +1,13 @@
 ---
 title: "Reference: Mastra.setStorage() | Core"
-description: "The .setStorage() method is used to set the storage instance for the Mastra instance. This method accepts a single MastraCompositeStore parameter."
+description: "The .setStorage() method is used to set the storage instance for the Mastra instance. This method accepts a single IMastraCompositeStore parameter."
 packages:
   - "@mastra/core"
 ---
 
 # Mastra.setStorage()
 
-The `.setStorage()` method is used to set the storage instance for the Mastra instance. This method accepts a single `MastraCompositeStore` parameter.
+The `.setStorage()` method is used to set the storage instance for the Mastra instance. This method accepts a single `IMastraCompositeStore` parameter.
 
 ## Usage example
 
@@ -26,7 +26,7 @@ mastra.setStorage(
   content={[
   {
     name: 'storage',
-    type: 'MastraCompositeStore',
+    type: 'IMastraCompositeStore',
     description: 'The storage instance to set for the Mastra instance.',
   },
 ]}

@@ -6,7 +6,7 @@ import type { MastraDBMessage, MessageListInput } from '../agent/message-list';
 import { convertMessages } from '../agent/message-list/utils/convert-messages';
 import type { SubAgent } from '../agent/subagent';
 import type { Mastra } from '../mastra';
-import type { MastraMemory } from '../memory/memory';
+import type { IMastraMemory } from '../memory/memory';
 import { RequestContext } from '../request-context';
 import type { ChunkType } from '../stream/types';
 import type { DynamicArgument } from '../types';
@@ -529,7 +529,7 @@ export class A2AAgent implements SubAgent {
 
   #cachedBootstrap?: AgentBootstrap;
   readonly #runState = new Map<string, A2AAgentRunState>();
-  #memory?: DynamicArgument<MastraMemory>;
+  #memory?: DynamicArgument<IMastraMemory>;
   #mastra?: Mastra;
 
   constructor(options: A2AAgentOptions) {
@@ -563,7 +563,7 @@ export class A2AAgent implements SubAgent {
     return Boolean(this.#memory);
   }
 
-  __setMemory(memory: DynamicArgument<MastraMemory>): void {
+  __setMemory(memory: DynamicArgument<IMastraMemory>): void {
     this.#memory = memory;
   }
 

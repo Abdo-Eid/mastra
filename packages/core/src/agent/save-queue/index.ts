@@ -1,16 +1,16 @@
 import type { IMastraLogger } from '../../logger';
 import type { MemoryConfigInternal } from '../../memory';
-import type { MastraMemory } from '../../memory/memory';
+import type { IMastraMemory } from '../../memory/memory';
 import type { MessageList } from '../message-list';
 
 export class SaveQueueManager {
   private logger?: IMastraLogger;
   private debounceMs: number;
-  private memory?: MastraMemory;
+  private memory?: IMastraMemory;
 
   private static MAX_STALENESS_MS = 1000;
 
-  constructor({ logger, debounceMs, memory }: { logger?: IMastraLogger; debounceMs?: number; memory?: MastraMemory }) {
+  constructor({ logger, debounceMs, memory }: { logger?: IMastraLogger; debounceMs?: number; memory?: IMastraMemory }) {
     this.logger = logger;
     this.debounceMs = debounceMs || 100;
     this.memory = memory;

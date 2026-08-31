@@ -2,7 +2,7 @@ import deepEqual from 'fast-deep-equal';
 import { z } from 'zod/v4';
 import { MastraError, ErrorDomain, ErrorCategory } from '../../../error';
 import type { SystemMessage } from '../../../llm';
-import type { MastraMemory } from '../../../memory/memory';
+import type { IMastraMemory } from '../../../memory/memory';
 import { MemoryRunState } from '../../../memory/run-state';
 import type { MemoryConfigInternal, StorageThreadType } from '../../../memory/types';
 import { resolveObservabilityContext } from '../../../observability';
@@ -63,7 +63,7 @@ interface PrepareMemoryStepOptions<OUTPUT = undefined> {
   /** MCP server guidance to include as a separate system message. */
   mcpServerGuidance?: string;
   memoryConfig?: MemoryConfigInternal;
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   isResume?: boolean;
   runScope: PrepareStreamRunScope<OUTPUT>;
 }

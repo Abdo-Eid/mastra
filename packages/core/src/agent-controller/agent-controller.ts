@@ -12,11 +12,11 @@ import { GatewayManager } from '../llm/model/gateways';
 import { defaultGateways } from '../llm/model/gateways/defaults';
 import type { MastraModelConfig } from '../llm/model/shared.types';
 import { Mastra } from '../mastra';
-import type { MastraMemory } from '../memory/memory';
+import type { IMastraMemory } from '../memory/memory';
 import type { StorageThreadType } from '../memory/types';
 import type { TracingContext, TracingOptions } from '../observability';
 import { RequestContext } from '../request-context';
-import type { MastraCompositeStore } from '../storage/base';
+import type { IMastraCompositeStore } from '../storage/base';
 import type { MemoryStorage } from '../storage/domains/memory/base';
 import type { ObservationalMemoryRecord } from '../storage/types';
 import type { DynamicArgument } from '../types';
@@ -885,7 +885,7 @@ export class AgentController<TState = {}> {
    * configured storage so the host and its Harnesses persist to a single store.
    * A standalone AgentController falls back to its own `config.storage`.
    */
-  #resolveStorage(): MastraCompositeStore | undefined {
+  #resolveStorage(): IMastraCompositeStore | undefined {
     return this.#externalMastra?.getStorage() ?? this.config.storage;
   }
 
@@ -2273,7 +2273,7 @@ export class AgentController<TState = {}> {
   /**
    * Resolve memory from config — handles both static instances and dynamic factory functions.
    */
-  private async resolveMemory(session: Session<TState>): Promise<MastraMemory> {
+  private async resolveMemory(session: Session<TState>): Promise<IMastraMemory> {
     const mem = this.config.memory;
     if (!mem) {
       throw new Error('Memory is not configured on this AgentController');

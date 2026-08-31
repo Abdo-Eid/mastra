@@ -4,7 +4,7 @@ import { resolveBackgroundConfig } from '../../../../background-tasks/resolve-co
 import type { ToolBackgroundConfig } from '../../../../background-tasks/types';
 import type { PubSub } from '../../../../events/pubsub';
 import type { Mastra } from '../../../../mastra';
-import type { MastraMemory } from '../../../../memory/memory';
+import type { IMastraMemory } from '../../../../memory/memory';
 import type { MemoryConfig } from '../../../../memory/types';
 import { EntityType, SpanType } from '../../../../observability';
 import type { ExportedSpan } from '../../../../observability';
@@ -95,7 +95,7 @@ async function flushMessagesBeforeSuspension({
 }: {
   saveQueueManager?: SaveQueueManager;
   messageList?: MessageList;
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   threadId?: string;
   resourceId?: string;
   memoryConfig?: MemoryConfig;

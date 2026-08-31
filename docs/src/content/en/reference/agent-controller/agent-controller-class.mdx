@@ -145,7 +145,7 @@ unsubscribe()
   },
   {
     name: 'storage',
-    type: 'MastraCompositeStore',
+    type: 'IMastraCompositeStore',
     description: 'Storage used for persistent threads, messages, settings, and resumable run data.',
     isOptional: true,
   },
@@ -163,7 +163,7 @@ unsubscribe()
   },
   {
     name: 'memory',
-    type: 'DynamicArgument<MastraMemory>',
+    type: 'DynamicArgument<IMastraMemory>',
     description: 'Memory instance shared with backing agents that do not define their own memory.',
     isOptional: true,
   },

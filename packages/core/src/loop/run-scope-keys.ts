@@ -19,7 +19,7 @@ import type { SaveQueueManager } from '../agent/save-queue';
 import type { CreatedAgentSignal } from '../agent/signals';
 import type { AgentBackgroundConfig, BackgroundTaskManager, BackgroundTaskManagerConfig } from '../background-tasks';
 import { createRunScopeKey } from '../mastra/run-scope';
-import type { MastraMemory, MemoryConfigInternal } from '../memory';
+import type { IMastraMemory, MemoryConfigInternal } from '../memory';
 import type { StreamTransportRef } from '../stream/types';
 import type { ToolPayloadTransformPolicy } from '../tools';
 import type { Workspace } from '../workspace/workspace';
@@ -33,7 +33,7 @@ export const CURRENT_DATE_KEY = createRunScopeKey<() => Date>('loop:currentDate'
 // --- Persistence / memory ---------------------------------------------------
 
 export const SAVE_QUEUE_MANAGER_KEY = createRunScopeKey<SaveQueueManager>('loop:saveQueueManager');
-export const MEMORY_KEY = createRunScopeKey<MastraMemory>('loop:memory');
+export const MEMORY_KEY = createRunScopeKey<IMastraMemory>('loop:memory');
 export const MEMORY_CONFIG_KEY = createRunScopeKey<MemoryConfigInternal>('loop:memoryConfig');
 export const THREAD_ID_KEY = createRunScopeKey<string>('loop:threadId');
 export const RESOURCE_ID_KEY = createRunScopeKey<string>('loop:resourceId');

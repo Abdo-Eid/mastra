@@ -1,5 +1,5 @@
 import { z } from 'zod/v4';
-import type { MastraMemory } from '../../../memory/memory';
+import type { IMastraMemory } from '../../../memory/memory';
 import type { StorageThreadType } from '../../../memory/types';
 import type { Span, SpanType } from '../../../observability';
 import { createObservabilityContext } from '../../../observability';
@@ -21,7 +21,7 @@ interface PrepareToolsStepOptions<OUTPUT = undefined> {
   requestContext: RequestContext;
   agentSpan?: Span<SpanType.AGENT_RUN>;
   methodType: AgentMethodType;
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   backgroundTaskEnabled?: boolean;
   runScope: PrepareStreamRunScope<OUTPUT>;
 }

@@ -6,6 +6,7 @@ import { MastraBase } from '../base';
 import { ErrorDomain, MastraError } from '../error';
 import { ModelRouterEmbeddingModel } from '../llm/model';
 import type { EmbeddingModelId, ModelRouterModelId } from '../llm/model';
+import type { IMastraLogger } from '../logger';
 import type { Mastra } from '../mastra';
 import type { ObservabilityContext } from '../observability';
 import type {
@@ -18,6 +19,7 @@ import { isProcessorWorkflow } from '../processors';
 import { MessageHistory, WorkingMemory, SemanticRecall } from '../processors/memory';
 import type { RequestContext } from '../request-context';
 import type {
+  IMastraCompositeStore,
   MastraCompositeStore,
   StorageListMessagesInput,
   StorageListThreadsInput,
@@ -103,6 +105,124 @@ export const memoryDefaultOptions = {
 export { filterSystemReminderMessages, isSystemReminderMessage } from './system-reminders';
 
 /**
+ * Structural public surface of a `MastraMemory`.
+ *
+ * `@mastra/memory` and store packages bundle their own copy of the
+ * `MastraMemory`/`MastraBase` declarations, so memory class types cannot be
+ * compared nominally across package boundaries — `#private`/`protected`
+ * members would make otherwise identical copies mutually unassignable.
+ * Positions that accept user-supplied memory (e.g. `AgentConfig.memory`,
+ * `new Mastra({ memory })`) accept this interface instead of the class.
+ *
+ * Note: methods intentionally use method syntax (not property syntax) so
+ * they are checked bivariantly.
+ */
+export interface IMastraMemory {
+  readonly id: string;
+  MAX_CONTEXT_TOKENS?: number;
+  readonly hasOwnStorage: boolean;
+  readonly storage: IMastraCompositeStore;
+  setStorage(storage: IMastraCompositeStore): void;
+  setVector(vector: MastraVector): void;
+  setEmbedder(
+    embedder: EmbeddingModelId | MastraEmbeddingModel<string>,
+    embedderOptions?: MastraEmbeddingOptions,
+  ): void;
+  __registerMastra(mastra: Mastra): void;
+  __setLogger(logger: IMastraLogger): void;
+  getSystemMessage(input: {
+    threadId: string;
+    resourceId?: string;
+    memoryConfig?: MemoryConfigInternal;
+  }): Promise<string | null>;
+  listTools(config?: MemoryConfig): Record<string, ToolAction<any, any, any, any, any>>;
+  getMergedThreadConfig(config?: MemoryConfigInternal): MemoryConfigInternal;
+  estimateTokens(text: string): number;
+  getThreadById(args: { threadId: string }): Promise<StorageThreadType | null>;
+  listThreads(args: StorageListThreadsInput): Promise<StorageListThreadsOutput>;
+  saveThread(args: { thread: StorageThreadType; memoryConfig?: MemoryConfigInternal }): Promise<StorageThreadType>;
+  saveMessages(args: {
+    messages: MastraDBMessage[];
+    memoryConfig?: MemoryConfig | undefined;
+    observabilityContext?: Partial<ObservabilityContext>;
+  }): Promise<{ messages: MastraDBMessage[]; usage?: { tokens: number } }>;
+  recall(
+    args: StorageListMessagesInput & {
+      threadConfig?: MemoryConfigInternal;
+      vectorSearchString?: string;
+      includeSystemReminders?: boolean;
+      observabilityContext?: Partial<ObservabilityContext>;
+    },
+  ): Promise<{
+    messages: MastraDBMessage[];
+    usage?: { tokens: number };
+    total: number;
+    page: number;
+    perPage: number | false;
+    hasMore: boolean;
+  }>;
+  createThread(args: {
+    resourceId: string;
+    threadId?: string;
+    title?: string;
+    metadata?: Record<string, unknown>;
+    memoryConfig?: MemoryConfigInternal;
+    saveThread?: boolean;
+  }): Promise<StorageThreadType>;
+  updateThread(args: {
+    id: string;
+    title?: string;
+    metadata?: Record<string, unknown>;
+    memoryConfig?: MemoryConfigInternal;
+  }): Promise<StorageThreadType>;
+  deleteThread(threadId: string): Promise<void>;
+  settled(): Promise<void>;
+  addMessage(params: {
+    threadId: string;
+    resourceId: string;
+    config?: MemoryConfigInternal;
+    content: UserContent | AssistantContent;
+    role: 'user' | 'assistant';
+    type: 'text' | 'tool-call' | 'tool-result';
+    toolNames?: string[];
+    toolCallArgs?: Record<string, unknown>[];
+    toolCallIds?: string[];
+  }): Promise<MastraMessageV1>;
+  generateId(context?: IdGeneratorContext): string;
+  getWorkingMemory(args: {
+    threadId: string;
+    resourceId?: string;
+    memoryConfig?: MemoryConfigInternal;
+  }): Promise<string | null>;
+  getWorkingMemoryTemplate(args: { memoryConfig?: MemoryConfigInternal }): Promise<WorkingMemoryTemplate | null>;
+  updateWorkingMemory(args: {
+    threadId: string;
+    resourceId?: string;
+    workingMemory: string;
+    memoryConfig?: MemoryConfigInternal;
+    observabilityContext?: Partial<ObservabilityContext>;
+  }): Promise<void>;
+  __experimental_updateWorkingMemoryVNext(args: {
+    threadId: string;
+    resourceId?: string;
+    workingMemory: string;
+    searchString?: string;
+    memoryConfig?: MemoryConfigInternal;
+  }): Promise<{ success: boolean; reason: string }>;
+  getInputProcessors(
+    configuredProcessors?: InputProcessorOrWorkflow[],
+    context?: RequestContext,
+  ): Promise<InputProcessor[]>;
+  getOutputProcessors(
+    configuredProcessors?: OutputProcessorOrWorkflow[],
+    context?: RequestContext,
+  ): Promise<OutputProcessor[]>;
+  deleteMessages(messageIds: MessageDeleteInput, observabilityContext?: Partial<ObservabilityContext>): Promise<void>;
+  cloneThread(args: StorageCloneThreadInput): Promise<StorageCloneThreadOutput>;
+  getConfig(): SerializedMemoryConfig;
+}
+
+/**
  * Abstract base class for implementing conversation memory systems.
  *
  * Key features:
@@ -111,7 +231,7 @@ export { filterSystemReminderMessages, isSystemReminderMessage } from './system-
  * - Working memory templates for structured conversation state
  * - Handles memory processors to manipulate messages before they are sent to the LLM
  */
-export abstract class MastraMemory extends MastraBase {
+export abstract class MastraMemory extends MastraBase implements IMastraMemory {
   /**
    * Unique identifier for the memory instance.
    * If not provided, defaults to a static name 'default-memory'.
@@ -240,7 +360,7 @@ https://mastra.ai/en/docs/memory/overview`,
     return this._storage;
   }
 
-  public setStorage(storage: MastraCompositeStore) {
+  public setStorage(storage: IMastraCompositeStore) {
     this._storage = augmentWithInit(storage);
   }
 

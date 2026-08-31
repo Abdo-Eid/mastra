@@ -54,7 +54,7 @@ import type { Mastra } from '../mastra';
 import { mastraCtorHolder } from '../mastra/mastra-ctor-holder';
 import type { VersionOverrides } from '../mastra/types';
 import { mergeVersionOverrides } from '../mastra/types';
-import type { MastraMemory } from '../memory/memory';
+import type { IMastraMemory } from '../memory/memory';
 import { getMemoryRunState } from '../memory/run-state';
 import type { MemoryConfig, MemoryConfigInternal } from '../memory/types';
 import {
@@ -608,7 +608,7 @@ export class Agent<
   #storedVersionApplied = false;
   #pubsub?: PubSub;
   #inheritedPubSub?: PubSub;
-  #memory?: DynamicArgument<MastraMemory, TRequestContext>;
+  #memory?: DynamicArgument<IMastraMemory, TRequestContext>;
   #skills?: AgentSkillsInput<TRequestContext>;
   #skillsFormat?: SkillFormat;
   // Per-request memoization so one resolver call serves both context injection and tool creation.
@@ -2168,12 +2168,12 @@ export class Agent<
    * Addressed to a single agent id so a memory-less sub-agent that delegates
    * further does not hand it on to its own sub-agents.
    */
-  #inheritedMemory(requestContext?: RequestContext): DynamicArgument<MastraMemory, TRequestContext> | undefined {
+  #inheritedMemory(requestContext?: RequestContext): DynamicArgument<IMastraMemory, TRequestContext> | undefined {
     const inherited = requestContext?.getRaw(MASTRA_INHERITED_MEMORY_KEY) as
-      | { agentId: string; memory: DynamicArgument<MastraMemory, any> }
+      | { agentId: string; memory: DynamicArgument<IMastraMemory, any> }
       | undefined;
     return inherited?.agentId === this.id
-      ? (inherited.memory as DynamicArgument<MastraMemory, TRequestContext>)
+      ? (inherited.memory as DynamicArgument<IMastraMemory, TRequestContext>)
       : undefined;
   }
 
@@ -2194,7 +2194,7 @@ export class Agent<
    * ```
    */
   public async getMemory({ requestContext = new RequestContext() }: { requestContext?: RequestContext } = {}): Promise<
-    MastraMemory | undefined
+    IMastraMemory | undefined
   > {
     // When a supervisor delegates to a memory-less sub-agent it passes its own
     // memory through the delegated run's RequestContext, so the inheritance
@@ -2206,7 +2206,7 @@ export class Agent<
       return undefined;
     }
 
-    let resolvedMemory: MastraMemory;
+    let resolvedMemory: IMastraMemory;
 
     if (typeof memoryConfig !== 'function') {
       resolvedMemory = memoryConfig;
@@ -3784,7 +3784,7 @@ export class Agent<
     }
   }
 
-  public __setMemory(memory: DynamicArgument<MastraMemory, TRequestContext>) {
+  public __setMemory(memory: DynamicArgument<IMastraMemory, TRequestContext>) {
     this.#memory = memory;
   }
 
@@ -5087,7 +5087,7 @@ export class Agent<
                     reason:
                       'Custom SubAgent implementations do not support per-invocation memory inheritance, so the memory is set on the shared instance and persists for its lifetime. Configure memory on the sub-agent to avoid this.',
                   });
-                  resolvedAgent.__setMemory(this.#memory as DynamicArgument<MastraMemory, TRequestContext>);
+                  resolvedAgent.__setMemory(this.#memory as DynamicArgument<IMastraMemory, TRequestContext>);
                 }
               }
             }

@@ -9,7 +9,7 @@ import type { TripWireOptions } from '../agent/trip-wire';
 import type { ModelRouterModelId } from '../llm/model';
 import type { MastraLanguageModel, OpenAICompatibleConfig, SharedProviderOptions } from '../llm/model/shared.types';
 import type { Mastra } from '../mastra';
-import type { MastraMemory } from '../memory/memory';
+import type { IMastraMemory } from '../memory/memory';
 import type { ObservabilityContext } from '../observability';
 import type { RequestContext } from '../request-context';
 import type { InferStandardSchemaOutput, StandardSchemaWithJSON } from '../schema';
@@ -216,7 +216,7 @@ export type RunProcessInputStepArgs = Omit<
   messageId?: string;
   rotateResponseMessageId?: () => string;
   retryCount?: number;
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   resourceId?: string;
   threadId?: string;
 };

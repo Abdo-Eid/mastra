@@ -8,6 +8,6 @@ Bundled declaration files are **copies** — multiple published packages ship th
 
 Rules:
 
-- Types that cross a published package boundary via `@internal/*` bundling must be **structural**. Do not rely on `#private` fields, `protected` members, or `instanceof` checks for identity across the boundary — expose structural interfaces (e.g. `IMastraAuthProvider`) at public contract points and use duck-typing at runtime.
+- Types that cross a published package boundary via `@internal/*` bundling must be **structural**. Do not rely on `#private` fields, `protected` members, or `instanceof` checks for identity across the boundary — expose structural interfaces (e.g. `IMastraAuthProvider`, `IMastraMemory`) at public contract points and use duck-typing at runtime.
 - The bundled class declarations themselves keep their brands, so a nominal class type (e.g. `MastraAuthProvider`) must never appear in a position that receives instances from another published package. Accept the structural interface instead, and have the class declare `implements` on it so the compiler keeps the two in sync.
-- Regression coverage lives in `packages/core/src/server/server.test-d.ts` (interface assignability, including a simulated bundled duplicate copy) and `e2e-tests/type-check/template/core/auth.test-d.ts` (packed artifacts under `exactOptionalPropertyTypes`).
+- Regression coverage lives in `packages/core/src/server/server.test-d.ts` and `packages/core/src/memory/memory.test-d.ts` (interface assignability, including a simulated bundled duplicate copy) and `e2e-tests/type-check/template/core/auth.test-d.ts` (packed artifacts under `exactOptionalPropertyTypes`).

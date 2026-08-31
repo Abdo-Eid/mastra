@@ -1,7 +1,7 @@
 import type { IMastraLogger } from '../../../logger';
 import { noopLogger } from '../../../logger/noop-logger';
 import type { Mastra } from '../../../mastra';
-import type { MastraMemory } from '../../../memory/memory';
+import type { IMastraMemory } from '../../../memory/memory';
 import { createObservabilityContext } from '../../../observability';
 import type { TracingContext } from '../../../observability';
 import type { OutputResult } from '../../../processors';
@@ -90,7 +90,7 @@ export async function runDurableFinishSideEffects({
   // rehydrated from Mastra, so an already-hydrated entry that was seeded without a save
   // queue would still be missing one afterwards. Keep what it returns and prefer that.
   let rebuiltSaveQueueManager: RunRegistryEntry['saveQueueManager'] | undefined;
-  let rebuiltMemory: MastraMemory | undefined;
+  let rebuiltMemory: IMastraMemory | undefined;
   const needsProcessorRebuild = registryEntry?.outputProcessors === undefined;
   const needsMemoryRebuild = !!durableState?.threadId && !registryEntry?.saveQueueManager;
   if ((needsProcessorRebuild || needsMemoryRebuild) && mastra) {
@@ -250,7 +250,7 @@ export async function generateDurableThreadTitle({
   messageListState,
   requestContext,
   tracingContext,
-}: GenerateThreadTitleArgs & { agent: AnyAgent; memory: MastraMemory }): Promise<void> {
+}: GenerateThreadTitleArgs & { agent: AnyAgent; memory: IMastraMemory }): Promise<void> {
   const thread = await memory.getThreadById({ threadId });
   const mergedConfig = memory.getMergedThreadConfig(memoryConfig);
   const { shouldGenerate, model, instructions, minMessages } = agent.resolveTitleGenerationConfig(

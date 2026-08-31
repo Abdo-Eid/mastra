@@ -20,7 +20,7 @@ import type { ProviderOptions } from '../llm/model/provider-options';
 import type { MastraModelConfig, TripwireProperties } from '../llm/model/shared.types';
 import type { Mastra } from '../mastra';
 import { createRunScope, createRunScopeKey } from '../mastra/run-scope';
-import type { MastraMemory } from '../memory/memory';
+import type { IMastraMemory } from '../memory/memory';
 import { getMemoryRunState, MemoryRunState } from '../memory/run-state';
 import type { MemoryConfigInternal, StorageThreadType } from '../memory/types';
 import type { Span, TracingOptions, TracingProperties, ObservabilityContext } from '../observability';
@@ -89,7 +89,7 @@ export interface AgentLegacyCapabilities {
   /** Get the agent's LLM instance, optionally using a request-scoped model override */
   getLLM(options: { requestContext: RequestContext; model?: DynamicArgument<MastraModelConfig> }): Promise<MastraLLMV1>;
   /** Get memory instance */
-  getMemory(options: { requestContext: RequestContext }): Promise<MastraMemory | undefined>;
+  getMemory(options: { requestContext: RequestContext }): Promise<IMastraMemory | undefined>;
   /** Get memory messages (deprecated - use input processors) */
   getMemoryMessages(args: {
     resourceId?: string;

@@ -6,7 +6,7 @@ import type { ScorerJudgeConfig } from '../../evals';
 import type { MastraModelConfig } from '../../llm';
 import type { StreamCompletionContext } from '../../loop/network/validation';
 import type { Mastra } from '../../mastra';
-import type { MastraMemory } from '../../memory';
+import type { IMastraMemory } from '../../memory';
 import type { RequestContext } from '../../request-context';
 import type { MastraDBMessage, MastraMessageContentV2, MastraMessagePart } from '../message-list';
 import { DEFAULT_GOAL_JUDGE_PROMPT, GOAL_SCORE_WAITING, GOAL_SCORER_ID } from './objective';
@@ -131,7 +131,7 @@ export function createGoalScorer({
   judgeModel: MastraModelConfig;
   prompt?: string;
   tools?: ToolsInput;
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   defaultMemoryOptions?: AgentMemoryOption;
   onStream?: ScorerJudgeConfig['onStream'];
   maxSteps?: number;

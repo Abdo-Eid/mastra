@@ -1,4 +1,4 @@
-import type { MastraMemory } from '../memory/memory';
+import type { IMastraMemory } from '../memory/memory';
 import type { MemoryConfigInternal, StorageThreadType } from '../memory/types';
 import type { MessageList } from './message-list';
 import type { MastraDBMessage } from './message-list/state/types';
@@ -154,7 +154,7 @@ export async function resolveStateSignalHistory({
   tracking,
 }: {
   messageList: MessageList;
-  memory: MastraMemory;
+  memory: IMastraMemory;
   threadId: string;
   stateId: string;
   tracking?: StateSignalTracking;
@@ -245,7 +245,7 @@ export async function applyStateSignal({
   writeSignal,
 }: {
   input: AgentStateSignalInput | (Omit<AgentStateSignalInput, 'id'> & { id?: string });
-  memory: MastraMemory;
+  memory: IMastraMemory;
   thread: StorageThreadType;
   resourceId: string;
   threadId: string;

@@ -40,7 +40,7 @@ import {
 } from '../logger';
 import type { IMastraLogger, LoggerAdapterOptions } from '../logger';
 import type { MCPServerBase } from '../mcp';
-import type { MastraMemory } from '../memory';
+import type { IMastraMemory } from '../memory';
 import type { NotificationDispatchConfig } from '../notifications/workflow';
 import {
   buildNotificationDispatchSchedule,
@@ -66,7 +66,7 @@ import { Schedules } from '../schedules/schedules';
 import type { SchedulesConfig, ScheduleHooks } from '../schedules/types';
 import type { MastraServerBase } from '../server/base';
 import type { ApiRoute, Middleware, ServerConfig, StudioConfig } from '../server/types';
-import type { MastraCompositeStore, WorkflowRuns } from '../storage';
+import type { IMastraCompositeStore, MastraCompositeStore, WorkflowRuns } from '../storage';
 import { InMemoryStore } from '../storage';
 import { BackgroundTasksInMemory } from '../storage/domains/background-tasks/inmemory';
 import { InMemoryDB } from '../storage/domains/inmemory-db';
@@ -255,7 +255,7 @@ export interface Config<
     ToolAction<any, any, any, any, any, any>
   >,
   TProcessors extends Record<string, Processor<any>> = Record<string, Processor<any>>,
-  TMemory extends Record<string, MastraMemory> = Record<string, MastraMemory>,
+  TMemory extends Record<string, IMastraMemory> = Record<string, IMastraMemory>,
   TChannels extends Record<string, ChannelProvider> = Record<string, ChannelProvider>,
 > {
   /**
@@ -270,7 +270,7 @@ export interface Config<
    * Storage provider for persisting data, conversation history, and workflow state.
    * Required for agent memory and workflow persistence.
    */
-  storage?: MastraCompositeStore;
+  storage?: IMastraCompositeStore;
 
   /**
    * Vector stores for semantic search and retrieval-augmented generation (RAG).
@@ -697,7 +697,7 @@ export class Mastra<
     ToolAction<any, any, any, any, any, any>
   >,
   TProcessors extends Record<string, Processor<any>> = Record<string, Processor<any>>,
-  TMemory extends Record<string, MastraMemory> = Record<string, MastraMemory>,
+  TMemory extends Record<string, IMastraMemory> = Record<string, IMastraMemory>,
   TChannels extends Record<string, ChannelProvider> = Record<string, ChannelProvider>,
 > {
   #vectors?: TVectors;
@@ -1448,7 +1448,7 @@ export class Mastra<
     // coordination in parallel/foreach steps, so a missing store would cause
     // parallel branches to silently fail to aggregate. In-memory is the safe
     // default for `new Mastra({})` / tests; production callers always override.
-    let storage: MastraCompositeStore;
+    let storage: IMastraCompositeStore;
     if (config?.storage) {
       storage = config.storage;
       this.#storageExplicit = true;
@@ -1468,7 +1468,7 @@ export class Mastra<
         );
       });
     }
-    storage = augmentWithInit(storage);
+    const initializedStorage = augmentWithInit(storage);
 
     // The evented workflow engine (used internally by the agentic loop) requires
     // `workflows` and `backgroundTasks` storage domains. When a user provides a
@@ -1476,14 +1476,14 @@ export class Mastra<
     // these infrastructure domains may be missing. Patch them in with lightweight
     // in-memory defaults so the engine works transparently without requiring users
     // to configure internal implementation details.
-    if (storage.stores) {
-      if (!storage.stores.workflows || !storage.stores.backgroundTasks) {
+    if (initializedStorage.stores) {
+      if (!initializedStorage.stores.workflows || !initializedStorage.stores.backgroundTasks) {
         const fallbackDb = new InMemoryDB();
-        if (!storage.stores.workflows) {
-          storage.stores.workflows = new WorkflowsInMemory({ db: fallbackDb });
+        if (!initializedStorage.stores.workflows) {
+          initializedStorage.stores.workflows = new WorkflowsInMemory({ db: fallbackDb });
         }
-        if (!storage.stores.backgroundTasks) {
-          storage.stores.backgroundTasks = new BackgroundTasksInMemory({ db: fallbackDb });
+        if (!initializedStorage.stores.backgroundTasks) {
+          initializedStorage.stores.backgroundTasks = new BackgroundTasksInMemory({ db: fallbackDb });
         }
       }
     }
@@ -1519,12 +1519,14 @@ export class Mastra<
     };
     this.#logger = this.#wireLoggerObservability(this.#logger);
 
-    this.#storage = storage;
+    this.#storage = initializedStorage;
 
     // Give storage adapters a back-pointer to this Mastra instance so they
     // can look up code-defined agents, editor config, etc. when needed
     // (e.g. filesystem code-mode snapshot filtering).
-    storage?.__registerMastra?.(this as unknown as Parameters<NonNullable<typeof storage.__registerMastra>>[0]);
+    initializedStorage?.__registerMastra?.(
+      this as unknown as Parameters<NonNullable<typeof initializedStorage.__registerMastra>>[0],
+    );
 
     // Register the editor after storage is assigned so code mode can overlay
     // filesystem-backed editor storage while preserving app storage domains.
@@ -4604,7 +4606,7 @@ export class Mastra<
    * const memory = mastra.getMemoryById('chat-memory');
    * ```
    */
-  public getMemoryById(id: string): MastraMemory {
+  public getMemoryById(id: string): IMastraMemory {
     const allMemory = this.#memory;
     if (allMemory) {
       for (const [, memory] of Object.entries(allMemory)) {
@@ -4669,12 +4671,12 @@ export class Mastra<
    * mastra.addMemory(chatMemory, 'customKey'); // Uses custom key
    * ```
    */
-  public addMemory<M extends MastraMemory>(memory: M, key?: string): void {
+  public addMemory<M extends IMastraMemory>(memory: M, key?: string): void {
     if (!memory) {
       throw createUndefinedPrimitiveError('memory', memory, key);
     }
     const memoryKey = key || memory.id;
-    const memoryRegistry = this.#memory as Record<string, MastraMemory>;
+    const memoryRegistry = this.#memory as Record<string, IMastraMemory>;
     if (memoryRegistry[memoryKey]) {
       return;
     }
@@ -5305,7 +5307,7 @@ export class Mastra<
    * });
    * ```
    */
-  public setStorage(storage: MastraCompositeStore) {
+  public setStorage(storage: IMastraCompositeStore) {
     this.#storageFallbackWarningPending = false;
     this.#storage = augmentWithInit(storage);
     this.#storage?.__registerMastra?.(this as unknown as Parameters<NonNullable<typeof storage.__registerMastra>>[0]);

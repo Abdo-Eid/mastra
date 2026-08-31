@@ -45,7 +45,7 @@ To enable `workingMemory` on an agent, you’ll need a storage provider configur
   content={[
   {
     name: 'storage',
-    type: 'MastraCompositeStore',
+    type: 'IMastraCompositeStore',
     description:
       'Storage implementation for persisting memory data. Defaults to `new DefaultStorage({ config: { url: "file:memory.db" } })` if not provided.',
     isOptional: true,

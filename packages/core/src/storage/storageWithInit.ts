@@ -1,20 +1,20 @@
 import type { IMastraLogger } from '../logger';
-import type { MastraCompositeStore } from './base';
+import type { IMastraCompositeStore, MastraCompositeStore } from './base';
 
 const isAugmentedSymbol = Symbol('isAugmented');
 const initIndependentMethods = new Set<PropertyKey>([
   '__registerMastra',
   '__setLogger',
   '__setRawConfig',
-] satisfies (keyof MastraCompositeStore)[]);
+] satisfies (keyof IMastraCompositeStore)[]);
 
-export function augmentWithInit(storage: MastraCompositeStore): MastraCompositeStore {
+export function augmentWithInit(storage: IMastraCompositeStore): MastraCompositeStore {
   let hasInitialized: null | Promise<void> = null;
 
   // `logger` is protected on MastraBase, but always assigned at construction
   // time, so we can read it at runtime through a narrow cast.
   const getLogger = (): IMastraLogger | undefined =>
-    (storage as MastraCompositeStore & { logger?: IMastraLogger }).logger;
+    (storage as IMastraCompositeStore & { logger?: IMastraLogger }).logger;
 
   // Wrap init so a rejection clears the cached promise. Without this,
   // a single transient init failure (e.g. a network blip during boot)
@@ -57,7 +57,7 @@ export function augmentWithInit(storage: MastraCompositeStore): MastraCompositeS
   // instanceof Proxy doesnt work in vitest https://github.com/vitejs/vite/discussions/14490
   // @ts-expect-error - symbol is not defined on the storage
   if (storage[isAugmentedSymbol]) {
-    return storage;
+    return storage as MastraCompositeStore;
   }
 
   // Override storage operations to wait until init is complete.
@@ -94,5 +94,5 @@ export function augmentWithInit(storage: MastraCompositeStore): MastraCompositeS
     },
   });
 
-  return proxy;
+  return proxy as MastraCompositeStore;
 }

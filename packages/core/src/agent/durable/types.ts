@@ -17,7 +17,7 @@ import type { ProviderOptions } from '../../llm/model/provider-options';
 import type { MastraLanguageModel } from '../../llm/model/shared.types';
 import type { ToolCallConcurrency } from '../../loop/types';
 import type { Mastra } from '../../mastra';
-import type { MastraMemory } from '../../memory/memory';
+import type { IMastraMemory } from '../../memory/memory';
 import type { MemoryConfig } from '../../memory/types';
 import type { AIModelGenerationSpan, Span, SpanType, TracingContext, TracingOptions } from '../../observability';
 import type { InputProcessorOrWorkflow, OutputProcessorOrWorkflow, ErrorProcessorOrWorkflow } from '../../processors';
@@ -566,7 +566,7 @@ export interface RunRegistryEntry {
   /** SaveQueueManager for message persistence (undefined when memory is not configured) */
   saveQueueManager?: SaveQueueManager;
   /** Memory instance for thread creation and message persistence */
-  memory?: MastraMemory;
+  memory?: IMastraMemory;
   /** The language model instance (non-serializable, has doStream method) */
   model: MastraLanguageModel;
   /** Model list for fallback support (stores actual model instances) */
