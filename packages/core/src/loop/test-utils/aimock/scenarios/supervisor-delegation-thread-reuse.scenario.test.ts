@@ -24,7 +24,17 @@ const toolNames = (req: ChatCompletionRequest) => (req.tools ?? []).map(t => t.f
 const isSupervisor = (req: ChatCompletionRequest) => toolNames(req).includes('agent-worker');
 const isWorker = (req: ChatCompletionRequest) => !isSupervisor(req);
 
-const FIRST_REPLY = 'Found prior turn ALPHA-7-TOKEN';
+/**
+ * The delegated prompt, one per turn.
+ *
+ * The prior turn is observable through its USER message, not through the
+ * worker's reply: a stored assistant turn carries
+ * `providerMetadata.openai.itemId`, so the provider replays it as an item
+ * reference and the reply text never reaches the wire. The user prompt is the
+ * part of a prior turn that a model actually receives back.
+ */
+const FIRST_TASK = 'TASK-ALPHA-7';
+const SECOND_TASK = 'TASK-BETA-9';
 const THREAD_ID = 'supervisor-thread';
 const RESOURCE_ID = 'test-user';
 
@@ -39,15 +49,15 @@ function makeWorker(mock: LLMock) {
   });
 }
 
-function delegationFixtures() {
+function delegationFixtures(task: string) {
   return (llm: LLMock) => {
     llm.on(
       { endpoint: 'chat', predicate: req => isSupervisor(req) && req.messages.at(-1)?.role !== 'tool' },
-      { toolCalls: [{ id: 'call_worker', name: 'agent-worker', arguments: { prompt: 'do the task' } }] },
+      { toolCalls: [{ id: 'call_worker', name: 'agent-worker', arguments: { prompt: task } }] },
     );
     llm.on(
       { endpoint: 'chat', predicate: req => isWorker(req) && req.messages.at(-1)?.role !== 'tool' },
-      { content: FIRST_REPLY },
+      { content: 'Worker reply.' },
     );
     llm.on(
       { endpoint: 'chat', predicate: req => isSupervisor(req) && req.messages.at(-1)?.role === 'tool' },
@@ -93,7 +103,7 @@ async function runTwoDelegations(
     },
   };
 
-  const call = (prompt: string) =>
+  const call = (prompt: string, task: string) =>
     runLoopScenario({
       engine,
       llm: mock,
@@ -105,10 +115,10 @@ async function runTwoDelegations(
       maxSteps: 5,
       errorProcessors: [],
       delegation,
-      fixtures: delegationFixtures(),
+      fixtures: delegationFixtures(task),
     });
 
-  await call('Find the prior record');
+  await call('Find the prior record', FIRST_TASK);
 
   // Drop the first delegation's journal and fixtures so the assertions only
   // see the second delegation's requests.
@@ -116,7 +126,7 @@ async function runTwoDelegations(
   mock.clearFixtures();
   mock.resetMatchCounts();
 
-  const { requests } = await call('Continue from last time');
+  const { requests } = await call('Continue from last time', SECOND_TASK);
 
   const workerRequests = requests.filter(r => isWorker(r.body as ChatCompletionRequest));
   expect(workerRequests).toHaveLength(1);
@@ -128,29 +138,36 @@ describeForAllEngines('AIMock loop scenario: supervisor delegation thread reuse'
 
   it('mints a fresh sub-agent thread per delegation by default, so the specialist cannot see its own prior turns', async () => {
     const { threadIds, secondWorkerRequest } = await runTwoDelegations(engine, getMock(), {});
+    const body = JSON.stringify(secondWorkerRequest.body);
 
     expect(threadIds).toHaveLength(2);
     expect(threadIds[0]).toBeDefined();
     expect(threadIds[1]).not.toBe(threadIds[0]);
-    expect(JSON.stringify(secondWorkerRequest.body)).not.toContain(FIRST_REPLY);
+    // The first delegation's prompt is on a thread of its own, so the second
+    // delegation's request does not carry it.
+    expect(body).not.toContain(FIRST_TASK);
+    expect(body).toContain(SECOND_TASK);
   });
 
   it('reuses the sub-agent thread and loads prior turns when onDelegationStart returns modifiedSubAgentThreadId', async () => {
     const { threadIds, secondWorkerRequest } = await runTwoDelegations(engine, getMock(), { reuseThread: true });
+    const body = JSON.stringify(secondWorkerRequest.body);
 
     expect(threadIds).toHaveLength(2);
     expect(threadIds[1]).toBe(threadIds[0]);
-    // The reused thread's message history (delegation 1's user prompt and the
-    // worker's FIRST_REPLY) is loaded into the second delegated request.
-    expect(JSON.stringify(secondWorkerRequest.body)).toContain(FIRST_REPLY);
+    // The reused thread's history is loaded, so the first delegation's prompt
+    // reaches the worker alongside the current one.
+    expect(body).toContain(FIRST_TASK);
+    expect(body).toContain(SECOND_TASK);
   });
 
   it('keeps a fresh thread when modifiedSubAgentThreadId is an empty string', async () => {
     const { threadIds, secondWorkerRequest } = await runTwoDelegations(engine, getMock(), { emptyThreadId: true });
+    const body = JSON.stringify(secondWorkerRequest.body);
 
     expect(threadIds).toHaveLength(2);
     expect(threadIds[1]).not.toBe(threadIds[0]);
-    expect(JSON.stringify(secondWorkerRequest.body)).not.toContain(FIRST_REPLY);
+    expect(body).not.toContain(FIRST_TASK);
   });
 
   it('lets modifiedMemoryOptions keep lastMessages disabled on a reused thread', async () => {
@@ -158,10 +175,12 @@ describeForAllEngines('AIMock loop scenario: supervisor delegation thread reuse'
       reuseThread: true,
       forceLastMessagesOff: true,
     });
+    const body = JSON.stringify(secondWorkerRequest.body);
 
     expect(threadIds).toHaveLength(2);
     expect(threadIds[1]).toBe(threadIds[0]);
-    // The thread is reused, but the override wins over the reuse default.
-    expect(JSON.stringify(secondWorkerRequest.body)).not.toContain(FIRST_REPLY);
+    // The thread is reused, but the override wins over the reuse default: the
+    // prior turn's prompt is not loaded.
+    expect(body).not.toContain(FIRST_TASK);
   });
 });
